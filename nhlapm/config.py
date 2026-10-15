@@ -45,14 +45,23 @@ SOURCE_SHIFTCHARTS = "shiftcharts"
 SOURCE_HTML_TOI = "html-toi"
 
 # -- site build -------------------------------------------------------------
-# Expanding to more clubs is this one line. The pipeline, the page and the
-# verify gate all iterate this list.
-TEAMS = ["CHI"]
-
+# The site covers every club. The processed data lives in one file per season
+# under docs/data/, so an older season is a second file, not a schema change.
 PRIMARY_CSV_NAME = "hawks_adjusted_pm.csv"
 DOCS_DIR = "docs"
-SITE_TITLE = "Blackhawks Adjusted Plus-Minus"
+DATA_DIR = "data"               # relative to DOCS_DIR
+SITE_TITLE = "NHL Adjusted Plus-Minus"
 DISPLAY_TIMEZONE = "America/Chicago"
+DEFAULT_PAGE_TEAM = "CHI"       # the team the CLI defaults to
+
+# -- league-scale publish gate ----------------------------------------------
+# A game that fails verification is quarantined, not fatal. Publishing is
+# blocked only for systemic trouble: more than this share of completed games
+# failing, or a league-level identity breaking.
+MAX_QUARANTINE_SHARE = 0.02
+# Float tolerance for the zero-sum identities (they are exact in integers;
+# only the Expected division introduces rounding).
+ZERO_SUM_TOLERANCE = 1e-6
 
 # Polarity colors for the Adjusted column. Green/red is the hockey convention
 # and is what ships, but it measures deutan Delta E 4.1 -- below the usable

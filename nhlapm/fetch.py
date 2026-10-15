@@ -15,10 +15,12 @@ from pathlib import Path
 
 from . import config
 
-USER_AGENT = "Mozilla/5.0 (compatible; hawks-adjusted-pm/1.1)"
+USER_AGENT = "Mozilla/5.0 (compatible; nhl-adjusted-pm/2.0)"
 REQUEST_TIMEOUT = 45
 RETRIES = 3
-THROTTLE_SECONDS = 0.35
+# About one request a second. A full-season backfill is ~4,000 requests, so
+# this is roughly an hour; politeness to a free, keyless API is worth it.
+THROTTLE_SECONDS = 1.0
 
 # The HTML game reports are served as windows-1252, not UTF-8.
 HTML_ENCODING = "cp1252"
@@ -37,6 +39,7 @@ class Fetcher:
         self.refresh = refresh
         self.verbose = verbose
         self.api_calls = 0
+        self.game_calls = 0     # network requests for per-game payloads only
         self.cache_hits = 0
         self._last_call = 0.0
 
@@ -112,26 +115,77 @@ class Fetcher:
         # refetched; it is one call.
         return self.get(url, f"schedule_{team}_{season}", allow_cache=False)
 
+    def _game_get(self, url: str, key: str) -> dict:
+        before = self.api_calls
+        try:
+            return self.get(url, key)
+        finally:
+            self.game_calls += self.api_calls - before
+
     def play_by_play(self, game_id: int) -> dict:
         url = f"{config.BASE_API_WEB}/gamecenter/{game_id}/play-by-play"
-        return self.get(url, f"pbp_{game_id}")
+        return self._game_get(url, f"pbp_{game_id}")
 
     def boxscore(self, game_id: int) -> dict:
         url = f"{config.BASE_API_WEB}/gamecenter/{game_id}/boxscore"
-        return self.get(url, f"boxscore_{game_id}")
+        return self._game_get(url, f"boxscore_{game_id}")
 
     def shifts(self, game_id: int) -> dict:
         url = f"{config.BASE_API_STATS}/shiftcharts?cayenneExp=gameId={game_id}"
-        return self.get(url, f"shifts_{game_id}")
+        return self._game_get(url, f"shifts_{game_id}")
 
     def toi_reports(self, game_id: int, season: str) -> tuple[str, str]:
         """(visitor report, home report) HTML for the fallback shift source."""
         number = str(game_id)[-6:]
+        before = self.api_calls
         away = self.get_text(
             f"{config.BASE_HTML_REPORTS}/{season}/TV{number}.HTM", f"toi_TV_{game_id}")
         home = self.get_text(
             f"{config.BASE_HTML_REPORTS}/{season}/TH{number}.HTM", f"toi_TH_{game_id}")
+        self.game_calls += self.api_calls - before
         return away, home
+
+    def schedule_week(self, date: str) -> dict:
+        """The league-wide schedule for the week starting at `date` (YYYY-MM-DD).
+
+        A cached week is reused only when every game in it has gone final;
+        a week that still holds an unplayed or live game is refetched.
+        """
+        url = f"{config.BASE_API_WEB}/schedule/{date}"
+        key = f"schedule_week_{date}"
+        payload = self.get(url, key)
+        if not _week_settled(payload):
+            payload = self.get(url, key, allow_cache=False)
+        return payload
+
+    def standings(self) -> dict:
+        """Current standings: team -> conference and division."""
+        return self.get(f"{config.BASE_API_WEB}/standings/now",
+                        "standings_now", allow_cache=False)
+
+    def skater_bios(self, season: str) -> dict:
+        """Every skater who has played this season: position, shoots, birthdate."""
+        url = (f"{config.BASE_API_STATS}/skater/bios?limit=-1&cayenneExp="
+               f"seasonId={season}%20and%20gameTypeId={config.GAME_TYPE_REGULAR}")
+        return self.get(url, f"skater_bios_{season}", allow_cache=False)
+
+    def rookies(self, season: str) -> dict:
+        """Skaters the NHL classifies as rookies this season (its own definition)."""
+        url = (f"{config.BASE_API_STATS}/skater/summary?limit=-1&cayenneExp="
+               f"seasonId={season}%20and%20gameTypeId={config.GAME_TYPE_REGULAR}"
+               f"%20and%20isRookie=%221%22")
+        return self.get(url, f"rookies_{season}", allow_cache=False)
+
+    def game_payloads_cached(self, game_id: int) -> bool:
+        return all(self._cache_path(f"{kind}_{game_id}").exists()
+                   for kind in ("pbp", "shifts", "boxscore"))
+
+    def drop_game_cache(self, game_id: int) -> None:
+        """Forget every cached payload for one game so it is refetched fresh."""
+        for key in (f"pbp_{game_id}", f"shifts_{game_id}", f"boxscore_{game_id}"):
+            self._cache_path(key).unlink(missing_ok=True)
+        for side in ("TV", "TH"):
+            self._cache_path(f"toi_{side}_{game_id}", "htm").unlink(missing_ok=True)
 
     # -- cache maintenance ------------------------------------------------
 
@@ -148,3 +202,14 @@ class Fetcher:
 
     def drop_shift_cache(self, game_id: int) -> None:
         self._cache_path(f"shifts_{game_id}").unlink(missing_ok=True)
+
+
+def _week_settled(payload: dict) -> bool:
+    """True when every regular-season game in a weekly schedule has gone final."""
+    for day in payload.get("gameWeek", []):
+        for game in day.get("games", []):
+            if game.get("gameType") != config.GAME_TYPE_REGULAR:
+                continue
+            if game.get("gameState") not in config.COMPLETED_GAME_STATES:
+                return False
+    return True

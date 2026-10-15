@@ -3,117 +3,128 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blackhawks Adjusted Plus-Minus</title>
-<meta name="description" content="5-on-5 adjusted plus-minus for Chicago Blackhawks skaters, rebuilt daily from NHL play-by-play and shift data.">
+<title>NHL Adjusted Plus-Minus</title>
+<meta name="description" content="5-on-5 adjusted plus-minus for every NHL skater, rebuilt daily from NHL play-by-play and shift data.">
 <meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='18' rx='13' ry='6' fill='%23111'/%3E%3Cellipse cx='16' cy='14' rx='13' ry='6' fill='%23333'/%3E%3C/svg%3E">
 <style>
 :root {
-  --page: #f9f9f7;
-  --surface: #fcfcfb;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --ink-3: #78776f;
-  --rule: #e4e3de;
-  --rule-2: #d3d2cb;
-  --track: #ecebe6;
-  --pos: #0ca30c;
-  --neg: #d03b3b;
-  --pos-wash: #e4f3e3;
-  --neg-wash: #f8e9e8;
-  --focus: #2a78d6;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e;
+  --ink-3: #78776f; --rule: #e4e3de; --rule-2: #d3d2cb; --track: #ecebe6;
+  --pos: #0ca30c; --neg: #d03b3b; --pos-wash: #e4f3e3; --neg-wash: #f8e9e8;
+  --focus: #2a78d6; --control: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --page: #0d0d0d;
-    --surface: #1a1a19;
-    --ink: #f0efec;
-    --ink-2: #c3c2b7;
-    --ink-3: #96958c;
-    --rule: #2c2c2a;
-    --rule-2: #3a3a37;
-    --track: #2c2c2a;
-    --pos: #0ca30c;
-    --neg: #e05555;
-    --pos-wash: #183017;
-    --neg-wash: #362221;
-    --focus: #3987e5;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7;
+    --ink-3: #96958c; --rule: #2c2c2a; --rule-2: #3a3a37; --track: #2c2c2a;
+    --pos: #0ca30c; --neg: #e05555; --pos-wash: #183017; --neg-wash: #362221;
+    --focus: #3987e5; --control: #222220;
   }
 }
 :root[data-theme="dark"] {
   --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7;
   --ink-3: #96958c; --rule: #2c2c2a; --rule-2: #3a3a37; --track: #2c2c2a;
-  --pos: #0ca30c; --neg: #e05555;
-  --pos-wash: #183017; --neg-wash: #362221; --focus: #3987e5;
+  --pos: #0ca30c; --neg: #e05555; --pos-wash: #183017; --neg-wash: #362221;
+  --focus: #3987e5; --control: #222220;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
-body {
-  margin: 0;
-  background: var(--page);
-  color: var(--ink);
+body { margin: 0; background: var(--page); color: var(--ink);
   font: 400 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         "Helvetica Neue", Arial, sans-serif;
-  font-variant-numeric: tabular-nums;
-  padding: 0 16px 56px;
-}
-.wrap { max-width: 1040px; margin: 0 auto; }
+  font-variant-numeric: tabular-nums; padding: 0 16px 56px; }
+.wrap { max-width: 1120px; margin: 0 auto; }
 header { padding: 28px 0 8px; }
 h1 { font-size: 1.4rem; line-height: 1.25; margin: 0 0 4px; letter-spacing: -.01em; }
 .sub { color: var(--ink-2); font-size: .85rem; margin: 0; }
 .stamp { color: var(--ink-3); font-size: .78rem; margin: 6px 0 0; }
-h2 { font-size: 1rem; margin: 28px 0 10px; color: var(--ink-2); font-weight: 600;
-      text-transform: uppercase; letter-spacing: .06em; }
-.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 0 0 14px; }
+
+details.filters { margin: 14px 0 12px; background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 10px; }
+details.filters > summary { cursor: pointer; padding: 10px 14px; font-weight: 600;
+  font-size: .88rem; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+details.filters > summary .active { color: var(--ink-3); font-weight: 400; font-size: .8rem; }
+details.filters > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px;
+  padding: 4px 14px 14px; }
+@media (min-width: 760px) { .fgrid { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); } }
+.f { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.f.wide { grid-column: 1 / -1; }
+@media (min-width: 760px) { .f.wide { grid-column: span 2; } }
+.f > span, .f > label > span.lab { font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--ink-3); font-weight: 600; }
+.f select, .f input[type=search], .f input[type=number], .f input[type=date] {
+  font: inherit; font-size: .86rem; color: var(--ink); background: var(--control);
+  border: 1px solid var(--rule-2); border-radius: 8px; padding: 6px 8px; width: 100%;
+  min-width: 0; min-height: 34px; }
+.f select:focus-visible, .f input:focus-visible, .seg button:focus-visible,
+.linkbtn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.dates { display: flex; gap: 6px; }
+.dates[hidden] { display: none; }
+.seg { display: flex; border: 1px solid var(--rule-2); border-radius: 8px; overflow: hidden;
+  min-height: 34px; }
+.seg button { all: unset; flex: 1; text-align: center; font-size: .82rem; padding: 6px 4px;
+  cursor: pointer; color: var(--ink-2); background: var(--control); }
+.seg button + button { border-left: 1px solid var(--rule-2); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--page); font-weight: 600; }
+.check { display: flex; align-items: center; gap: 8px; font-size: .86rem; min-height: 34px; }
+.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
+.linkbtn { all: unset; cursor: pointer; color: var(--ink-2); text-decoration: underline;
+  font-size: .8rem; }
+
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 0 0 12px; }
 @media (min-width: 620px) { .tiles { grid-template-columns: repeat(4, 1fr); } }
 .tile { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
-         padding: 10px 12px; display: flex; flex-direction: column; gap: 1px; }
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .tlabel { font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); }
 .tval { font-size: 1.45rem; font-weight: 650; line-height: 1.1; }
 .tsub { font-size: .72rem; color: var(--ink-3); }
+.count { color: var(--ink-3); font-size: .78rem; margin: 0 2px 8px; }
+
 .tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule);
-              border-radius: 10px; -webkit-overflow-scrolling: touch; }
+  border-radius: 10px; -webkit-overflow-scrolling: touch; }
 table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: .82rem; }
 th, td { padding: 7px 9px; white-space: nowrap; border-bottom: 1px solid var(--rule); }
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 thead th { position: sticky; top: 0; z-index: 3; background: var(--surface);
-            border-bottom: 1px solid var(--rule-2); padding: 0; }
-/* width:auto + min-width:100% so the header's own text sets the column's
-   minimum. With width:100% the button contributes no intrinsic width, the
-   column sizes to the data, and the next sticky th's opaque background paints
-   over the overflow -- headers look truncated. */
-thead th button { all: unset; box-sizing: border-box; display: block;
-  width: auto; min-width: 100%; cursor: pointer;
-  padding: 9px; font: inherit; font-size: .68rem; font-weight: 650; color: var(--ink-2);
-  text-transform: uppercase; letter-spacing: .04em; }
+  border-bottom: 1px solid var(--rule-2); padding: 0; }
+/* width:auto + min-width:100% so the header text sets the column minimum;
+   with width:100% the next sticky th paints over it and headers look cut. */
+thead th button { all: unset; box-sizing: border-box; display: block; width: auto;
+  min-width: 100%; cursor: pointer; padding: 9px; font: inherit; font-size: .68rem;
+  font-weight: 650; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
 thead th.num button { text-align: right; }
 thead th button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
-thead th[aria-sort="none"] .arrow::after { content: ""; }
 thead th[aria-sort="descending"] .arrow::after { content: " \2193"; }
 thead th[aria-sort="ascending"] .arrow::after { content: " \2191"; }
 thead th:not([aria-sort="none"]) button { color: var(--ink); }
 .num { text-align: right; }
 .txt { text-align: left; }
-th.player, td:first-child { position: sticky; left: 0; z-index: 2;
-  background: var(--surface); font-weight: 500; }
+th.player, thead th:first-child { position: sticky; left: 0; z-index: 2;
+  background: var(--surface); border-right: 1px solid var(--rule); }
+th.player { font-weight: 500; }
 thead th:first-child { z-index: 4; }
-th.player { border-right: 1px solid var(--rule); }
-thead th:first-child { border-right: 1px solid var(--rule); }
-tbody tr:nth-child(even) th.player, tbody tr:nth-child(even) td { background: var(--page); }
-tbody tr:nth-child(even) th.player { background: var(--page); }
+tbody tr:nth-child(even) th, tbody tr:nth-child(even) td { background: var(--page); }
+td.tm { color: var(--ink-2); }
 .abbr { display: none; }
 td.adj { min-width: 92px; }
 .adjnum { display: block; font-weight: 650; }
-.bar { position: relative; display: block; height: 4px; margin: 3px 0 0 auto;
-        width: 100%; max-width: 76px; background: var(--track); border-radius: 2px; }
-.bar::before { content: ""; position: absolute; left: 50%; top: -2px; width: 1px;
-                height: 8px; background: var(--rule-2); }
+.bar { position: relative; display: block; height: 4px; margin: 3px 0 0 auto; width: 100%;
+  max-width: 76px; background: var(--track); border-radius: 2px; }
+.bar::before { content: ""; position: absolute; left: 50%; top: -2px; width: 1px; height: 8px;
+  background: var(--rule-2); }
 .bar i { position: absolute; top: 0; height: 4px; border-radius: 2px; min-width: 2px; }
 .bar i.pos { left: 50%; background: var(--pos); }
 .bar i.neg { right: 50%; background: var(--neg); }
-td.adj.p { background: var(--pos-wash); }
-td.adj.n { background: var(--neg-wash); }
-td.adj.z { background: var(--surface); }
-tbody tr:nth-child(even) td.adj.z { background: var(--page); }
+tbody tr td.adj.p { background: var(--pos-wash); }
+tbody tr td.adj.n { background: var(--neg-wash); }
+.state { padding: 22px 14px; color: var(--ink-3); font-size: .86rem; }
+.more { display: block; margin: 10px auto 0; font: inherit; font-size: .84rem; cursor: pointer;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--rule-2);
+  border-radius: 8px; padding: 8px 16px; }
+.more[hidden] { display: none; }
 .hint { display: none; color: var(--ink-3); font-size: .72rem; margin: 8px 2px 0; }
 @media (max-width: 760px) {
   .full { display: none; }
@@ -122,28 +133,29 @@ tbody tr:nth-child(even) td.adj.z { background: var(--page); }
   table { font-size: .76rem; }
   th, td { padding: 6px 7px; }
   thead th button { padding: 8px 7px; font-size: .64rem; }
-  th.player { max-width: 112px; overflow: hidden; text-overflow: ellipsis; }
+  th.player { max-width: 118px; overflow: hidden; text-overflow: ellipsis; }
   td.adj { min-width: 72px; }
   .bar { max-width: 54px; }
-  /* Player pinned left, Adjusted pinned right: the row label and the headline
-     number stay on screen while the middle columns scroll between them. */
-  td.adj, thead th[data-col="8"] { position: sticky; right: 0; z-index: 2;
+  /* Player pinned left, Adjusted pinned right. */
+  td.adj, thead th.adjh { position: sticky; right: 0; z-index: 2;
     border-left: 1px solid var(--rule-2); }
-  thead th[data-col="8"] { z-index: 4; background: var(--surface); }
+  thead th.adjh { z-index: 4; background: var(--surface); }
   .tval { font-size: 1.3rem; }
 }
 .prov { color: var(--ink-3); font-size: .76rem; margin: 10px 2px 0; }
-details.legend { margin: 26px 0 0; background: var(--surface);
-  border: 1px solid var(--rule); border-radius: 10px; padding: 0 14px; }
-details.legend summary { cursor: pointer; padding: 12px 0; font-weight: 600;
-  font-size: .9rem; }
+details.excl { color: var(--ink-3); font-size: .76rem; margin: 6px 2px 0; }
+details.excl summary { cursor: pointer; }
+details.excl ul { margin: 6px 0 0; padding-left: 18px; }
+details.legend { margin: 26px 0 0; background: var(--surface); border: 1px solid var(--rule);
+  border-radius: 10px; padding: 0 14px; }
+details.legend summary { cursor: pointer; padding: 12px 0; font-weight: 600; font-size: .9rem; }
 details.legend summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 dl { margin: 0 0 12px; }
 .lrow { padding: 9px 0; border-top: 1px solid var(--rule); }
 dt { font-weight: 650; font-size: .82rem; margin: 0 0 2px; }
 dd { margin: 0; color: var(--ink-2); font-size: .84rem; }
 footer { margin-top: 26px; color: var(--ink-3); font-size: .74rem; }
-footer a { color: var(--ink-2); }
+footer a, .prov a { color: var(--ink-2); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
@@ -151,100 +163,541 @@ footer a { color: var(--ink-2); }
 <body>
 <div class="wrap">
 <header>
-  <h1>Blackhawks Adjusted Plus-Minus</h1>
-  <p class="sub">5-on-5 only, both goalies in net &middot; 2026-27 regular season</p>
-  <p class="stamp">Updated Thu Oct 15, 2026 at 10:25 AM CDT</p>
+  <h1>NHL Adjusted Plus-Minus</h1>
+  <p class="sub">5-on-5 only, both goalies in net &middot; <span id="seasonLabel">2026-27</span> regular season</p>
+  <p class="stamp">Updated Thu Oct 15, 2026 at 11:32 AM CDT<span id="through"></span></p>
 </header>
-<section class="team" id="team-CHI">
-<h2>CHI skaters</h2>
-<div class="tiles"><div class="tile"><span class="tlabel">5v5 goals for</span><span class="tval">11</span></div><div class="tile"><span class="tlabel">5v5 goals against</span><span class="tval">20</span></div><div class="tile"><span class="tlabel">5v5 differential</span><span class="tval">-9</span><span class="tsub">-1.55 per 60</span></div><div class="tile"><span class="tlabel">5v5 minutes</span><span class="tval">349</span><span class="tsub">7 games</span></div></div>
+
+<details class="filters" id="filters" open>
+  <summary>Filters <span class="active" id="activeSummary"></span></summary>
+  <div class="fgrid">
+    <label class="f" id="seasonWrap" hidden><span class="lab">Season</span>
+      <select id="season"></select></label>
+    <label class="f"><span class="lab">Scope</span><select id="scope"></select></label>
+    <label class="f"><span class="lab">Position</span>
+      <select id="pos">
+        <option value="">All skaters</option><option value="F">Forwards</option>
+        <option value="D">Defense</option><option value="C">C</option>
+        <option value="LW">LW</option><option value="RW">RW</option>
+      </select></label>
+    <div class="f wide"><span>Games</span>
+      <div class="dates">
+        <select id="games" aria-label="Games">
+          <option value="">Season to date</option><option value="5">Last 5 games</option>
+          <option value="10">Last 10 games</option><option value="20">Last 20 games</option>
+          <option value="custom">Custom dates</option>
+        </select>
+      </div>
+      <div class="dates" id="dateWrap" hidden>
+        <input type="date" id="from" aria-label="From date">
+        <input type="date" id="to" aria-label="To date">
+      </div>
+    </div>
+    <label class="f"><span class="lab">Min 5v5 TOI (min)</span>
+      <input type="number" id="min" min="0" step="10" inputmode="numeric"></label>
+    <div class="f"><span>Venue</span>
+      <div class="seg" role="group" aria-label="Venue" id="venue">
+        <button type="button" data-v="">Both</button><button type="button" data-v="home">Home</button><button type="button" data-v="away">Away</button>
+      </div></div>
+    <div class="f"><span>Show</span>
+      <div class="seg" role="group" aria-label="Totals or per 60" id="mode">
+        <button type="button" data-v="">Totals</button><button type="button" data-v="60">Per 60</button>
+      </div></div>
+    <div class="f"><span>Rookies</span>
+      <label class="check"><input type="checkbox" id="rookies"> Rookies only</label></div>
+    <label class="f wide"><span class="lab">Player</span>
+      <input type="search" id="q" placeholder="Search by name" autocomplete="off" spellcheck="false"></label>
+    <div class="f"><span>&nbsp;</span><button type="button" class="linkbtn" id="reset">Reset filters</button></div>
+  </div>
+</details>
+
+<div class="tiles" id="tiles"></div>
+<p class="count" id="count"></p>
 <div class="tablewrap">
-<table id="t-CHI">
-<caption class="sr-only">CHI skaters, 5-on-5 adjusted plus-minus, sortable</caption>
-<thead><tr><th scope="col" class="txt" data-col="0" data-type="txt" aria-sort="none"><button type="button"><span class="full">Player</span><span class="abbr">Player</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="txt" data-col="1" data-type="txt" aria-sort="none"><button type="button"><span class="full">Pos</span><span class="abbr">Pos</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="num" data-col="2" data-type="num" aria-sort="none" title="Games included in this calculation"><button type="button"><span class="full">GP</span><span class="abbr">GP</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="num" data-col="3" data-type="num" aria-sort="none" title="Minutes on ice at 5v5 with both goalies in net"><button type="button"><span class="full">TOI_5v5</span><span class="abbr">TOI</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="num" data-col="4" data-type="num" aria-sort="none" title="The NHL&#x27;s published plus-minus"><button type="button"><span class="full">Official_PM</span><span class="abbr">Off +/-</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="num" data-col="5" data-type="num" aria-sort="none" title="5v5 goal differential while on the ice"><button type="button"><span class="full">GD_on</span><span class="abbr">GD on</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="num" data-col="6" data-type="num" aria-sort="none" title="Official minus 5v5: the part earned elsewhere"><button type="button"><span class="full">NonClean</span><span class="abbr">NonCln</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="num" data-col="7" data-type="num" aria-sort="none" title="What an average skater on this team would post in these minutes"><button type="button"><span class="full">Expected</span><span class="abbr">Exp</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="num" data-col="8" data-type="num" aria-sort="descending" title="GD_on minus Expected"><button type="button"><span class="full">Adjusted</span><span class="abbr">Adj</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="num" data-col="9" data-type="num" aria-sort="none" title="On-ice differential against the same team without them"><button type="button"><span class="full">Rel</span><span class="abbr">Rel</span><span class="arrow" aria-hidden="true"></span></button></th><th scope="col" class="num" data-col="10" data-type="num" aria-sort="none" title="5v5 goal differential per 60 minutes"><button type="button"><span class="full">GD_on/60</span><span class="abbr">GD/60</span><span class="arrow" aria-hidden="true"></span></button></th></tr></thead>
-<tbody>
-<tr><th scope="row" class="txt player" data-v="Tyler Bertuzzi">Tyler Bertuzzi</th><td class="txt" data-v="L">L</td><td class="num" data-v="7">7</td><td class="num" data-v="95.31666666666666">95.3</td><td class="num" data-v="1">+1</td><td class="num" data-v="1">+1</td><td class="num" data-v="0">0</td><td class="num" data-v="-2.4607257254864465">-2.46</td><td class="num adj p" data-v="3.4607257254864465"><span class="adjnum">+3.46</span><span class="bar" aria-hidden="true"><i class="pos" style="width:38.1%"></i></span></td><td class="num" data-v="4.762995130938282">+4.76</td><td class="num" data-v="0.6294806784402868">+0.63</td></tr>
-<tr><th scope="row" class="txt player" data-v="Ryan Greene">Ryan Greene</th><td class="txt" data-v="C">C</td><td class="num" data-v="7">7</td><td class="num" data-v="91.1">91.1</td><td class="num" data-v="2">+2</td><td class="num" data-v="1">+1</td><td class="num" data-v="1">+1</td><td class="num" data-v="-2.3518669025194816">-2.35</td><td class="num adj p" data-v="3.3518669025194816"><span class="adjnum">+3.35</span><span class="bar" aria-hidden="true"><i class="pos" style="width:36.9%"></i></span></td><td class="num" data-v="4.537635104523979">+4.54</td><td class="num" data-v="0.6586169045005489">+0.66</td></tr>
-<tr><th scope="row" class="txt player" data-v="Jordan Greenway">Jordan Greenway</th><td class="txt" data-v="L">L</td><td class="num" data-v="7">7</td><td class="num" data-v="88.01666666666667">88.0</td><td class="num" data-v="1">+1</td><td class="num" data-v="1">+1</td><td class="num" data-v="0">0</td><td class="num" data-v="-2.272266577425061">-2.27</td><td class="num adj p" data-v="3.272266577425061"><span class="adjnum">+3.27</span><span class="bar" aria-hidden="true"><i class="pos" style="width:36.0%"></i></span></td><td class="num" data-v="4.377462266564339">+4.38</td><td class="num" data-v="0.6816890740390078">+0.68</td></tr>
-<tr><th scope="row" class="txt player" data-v="Ian Cole">Ian Cole</th><td class="txt" data-v="D">D</td><td class="num" data-v="7">7</td><td class="num" data-v="99.83333333333333">99.8</td><td class="num" data-v="2">+2</td><td class="num" data-v="0">0</td><td class="num" data-v="2">+2</td><td class="num" data-v="-2.5773294449490844">-2.58</td><td class="num adj p" data-v="2.5773294449490844"><span class="adjnum">+2.58</span><span class="bar" aria-hidden="true"><i class="pos" style="width:28.4%"></i></span></td><td class="num" data-v="3.6115763381791384">+3.61</td><td class="num" data-v="0.0">0.00</td></tr>
-<tr><th scope="row" class="txt player" data-v="Teuvo Teravainen">Teuvo Teravainen</th><td class="txt" data-v="C">C</td><td class="num" data-v="5">5</td><td class="num" data-v="55.0">55.0</td><td class="num" data-v="2">+2</td><td class="num" data-v="1">+1</td><td class="num" data-v="1">+1</td><td class="num" data-v="-1.4198976908734522">-1.42</td><td class="num adj p" data-v="2.4198976908734524"><span class="adjnum">+2.42</span><span class="bar" aria-hidden="true"><i class="pos" style="width:26.6%"></i></span></td><td class="num" data-v="2.8731906681046717">+2.87</td><td class="num" data-v="1.0909090909090908">+1.09</td></tr>
-<tr><th scope="row" class="txt player" data-v="Cole Smith">Cole Smith</th><td class="txt" data-v="R">R</td><td class="num" data-v="7">7</td><td class="num" data-v="87.11666666666666">87.1</td><td class="num" data-v="1">+1</td><td class="num" data-v="0">0</td><td class="num" data-v="1">+1</td><td class="num" data-v="-2.249031887938041">-2.25</td><td class="num adj p" data-v="2.249031887938041"><span class="adjnum">+2.25</span><span class="bar" aria-hidden="true"><i class="pos" style="width:24.8%"></i></span></td><td class="num" data-v="2.998279158699809">+3.00</td><td class="num" data-v="0.0">0.00</td></tr>
-<tr><th scope="row" class="txt player" data-v="Artyom Levshunov">Artyom Levshunov</th><td class="txt" data-v="D">D</td><td class="num" data-v="7">7</td><td class="num" data-v="125.26666666666667">125.3</td><td class="num" data-v="-2">-2</td><td class="num" data-v="-1">-1</td><td class="num" data-v="-1">-1</td><td class="num" data-v="-3.2339245589711716">-3.23</td><td class="num adj p" data-v="2.2339245589711716"><span class="adjnum">+2.23</span><span class="bar" aria-hidden="true"><i class="pos" style="width:24.6%"></i></span></td><td class="num" data-v="3.486829341093948">+3.49</td><td class="num" data-v="-0.47897817988291647">-0.48</td></tr>
-<tr><th scope="row" class="txt player" data-v="Connor Bedard">Connor Bedard</th><td class="txt" data-v="C">C</td><td class="num" data-v="1">1</td><td class="num" data-v="17.25">17.2</td><td class="num" data-v="1">+1</td><td class="num" data-v="1">+1</td><td class="num" data-v="0">0</td><td class="num" data-v="-0.4453315485012191">-0.45</td><td class="num adj p" data-v="1.445331548501219"><span class="adjnum">+1.45</span><span class="bar" aria-hidden="true"><i class="pos" style="width:15.9%"></i></span></td><td class="num" data-v="1.5205713710894275">+1.52</td><td class="num" data-v="3.4782608695652173">+3.48</td></tr>
-<tr><th scope="row" class="txt player" data-v="Anton Frondell">Anton Frondell</th><td class="txt" data-v="C">C</td><td class="num" data-v="7">7</td><td class="num" data-v="93.3">93.3</td><td class="num" data-v="-2">-2</td><td class="num" data-v="-2">-2</td><td class="num" data-v="0">0</td><td class="num" data-v="-2.40866281015442">-2.41</td><td class="num adj p" data-v="0.4086628101544201"><span class="adjnum">+0.41</span><span class="bar" aria-hidden="true"><i class="pos" style="width:4.5%"></i></span></td><td class="num" data-v="0.5579998694431749">+0.56</td><td class="num" data-v="-1.2861736334405145">-1.29</td></tr>
-<tr><th scope="row" class="txt player" data-v="Andrew Mangiapane">Andrew Mangiapane</th><td class="txt" data-v="L">L</td><td class="num" data-v="1">1</td><td class="num" data-v="5.333333333333333">5.3</td><td class="num" data-v="0">0</td><td class="num" data-v="0">0</td><td class="num" data-v="0">0</td><td class="num" data-v="-0.13768704881197114">-0.14</td><td class="num adj p" data-v="0.13768704881197114"><span class="adjnum">+0.14</span><span class="bar" aria-hidden="true"><i class="pos" style="width:1.5%"></i></span></td><td class="num" data-v="0.13982618827984658">+0.14</td><td class="num" data-v="0.0">0.00</td></tr>
-<tr><th scope="row" class="txt player" data-v="Alex Vlasic">Alex Vlasic</th><td class="txt" data-v="D">D</td><td class="num" data-v="7">7</td><td class="num" data-v="116.81666666666666">116.8</td><td class="num" data-v="0">0</td><td class="num" data-v="-3">-3</td><td class="num" data-v="3">+3</td><td class="num" data-v="-3.0157766410097047">-3.02</td><td class="num adj p" data-v="0.01577664100970466"><span class="adjnum">+0.02</span><span class="bar" aria-hidden="true"><i class="pos" style="width:0.2%"></i></span></td><td class="num" data-v="0.02372735116479685">+0.02</td><td class="num" data-v="-1.5408760165501498">-1.54</td></tr>
-<tr><th scope="row" class="txt player" data-v="Wyatt Kaiser">Wyatt Kaiser</th><td class="txt" data-v="D">D</td><td class="num" data-v="7">7</td><td class="num" data-v="116.1">116.1</td><td class="num" data-v="-3">-3</td><td class="num" data-v="-3">-3</td><td class="num" data-v="0">0</td><td class="num" data-v="-2.9972749438255963">-3.00</td><td class="num adj z" data-v="-0.0027250561744036617"><span class="adjnum">0.00</span><span class="bar" aria-hidden="true"></span></td><td class="num" data-v="-0.004085728621604279">0.00</td><td class="num" data-v="-1.550387596899225">-1.55</td></tr>
-<tr><th scope="row" class="txt player" data-v="Roman Kantserov">Roman Kantserov</th><td class="txt" data-v="R">R</td><td class="num" data-v="7">7</td><td class="num" data-v="103.31666666666666">103.3</td><td class="num" data-v="-4">-4</td><td class="num" data-v="-3">-3</td><td class="num" data-v="-1">-1</td><td class="num" data-v="-2.667256298704403">-2.67</td><td class="num adj n" data-v="-0.33274370129559694"><span class="adjnum">-0.33</span><span class="bar" aria-hidden="true"><i class="neg" style="width:3.7%"></i></span></td><td class="num" data-v="-0.47289033836119065">-0.47</td><td class="num" data-v="-1.7422164865300855">-1.74</td></tr>
-<tr><th scope="row" class="txt player" data-v="Sam Rinzel">Sam Rinzel</th><td class="txt" data-v="D">D</td><td class="num" data-v="6">6</td><td class="num" data-v="96.81666666666666">96.8</td><td class="num" data-v="-2">-2</td><td class="num" data-v="-3">-3</td><td class="num" data-v="1">+1</td><td class="num" data-v="-2.4994502079648133">-2.50</td><td class="num adj n" data-v="-0.5005497920351867"><span class="adjnum">-0.50</span><span class="bar" aria-hidden="true"><i class="neg" style="width:5.5%"></i></span></td><td class="num" data-v="-0.693010325655282">-0.69</td><td class="num" data-v="-1.8591840247891203">-1.86</td></tr>
-<tr><th scope="row" class="txt player" data-v="Bowen Byram">Bowen Byram</th><td class="txt" data-v="D">D</td><td class="num" data-v="6">6</td><td class="num" data-v="119.43333333333334">119.4</td><td class="num" data-v="-7">-7</td><td class="num" data-v="-4">-4</td><td class="num" data-v="-3">-3</td><td class="num" data-v="-3.0833293493330785">-3.08</td><td class="num adj n" data-v="-0.9166706506669215"><span class="adjnum">-0.92</span><span class="bar" aria-hidden="true"><i class="neg" style="width:10.1%"></i></span></td><td class="num" data-v="-1.3943713184495676">-1.39</td><td class="num" data-v="-2.0094892548144014">-2.01</td></tr>
-<tr><th scope="row" class="txt player" data-v="Oliver Moore">Oliver Moore</th><td class="txt" data-v="C">C</td><td class="num" data-v="7">7</td><td class="num" data-v="74.1">74.1</td><td class="num" data-v="-3">-3</td><td class="num" data-v="-3">-3</td><td class="num" data-v="0">0</td><td class="num" data-v="-1.9129894344313239">-1.91</td><td class="num adj n" data-v="-1.0870105655686761"><span class="adjnum">-1.09</span><span class="bar" aria-hidden="true"><i class="neg" style="width:12.0%"></i></span></td><td class="num" data-v="-1.3804262036306234">-1.38</td><td class="num" data-v="-2.42914979757085">-2.43</td></tr>
-<tr><th scope="row" class="txt player" data-v="Ethan Del Mastro">Ethan Del Mastro</th><td class="txt" data-v="D">D</td><td class="num" data-v="1">1</td><td class="num" data-v="14.933333333333334">14.9</td><td class="num" data-v="-2">-2</td><td class="num" data-v="-2">-2</td><td class="num" data-v="0">0</td><td class="num" data-v="-0.38552373667351914">-0.39</td><td class="num adj n" data-v="-1.6144762633264809"><span class="adjnum">-1.61</span><span class="bar" aria-hidden="true"><i class="neg" style="width:17.8%"></i></span></td><td class="num" data-v="-1.6867289346186505">-1.69</td><td class="num" data-v="-8.035714285714286">-8.04</td></tr>
-<tr><th scope="row" class="txt player" data-v="Kevin Korchinski">Kevin Korchinski</th><td class="txt" data-v="D">D</td><td class="num" data-v="1">1</td><td class="num" data-v="10.533333333333333">10.5</td><td class="num" data-v="-2">-2</td><td class="num" data-v="-2">-2</td><td class="num" data-v="0">0</td><td class="num" data-v="-0.271931921403643">-0.27</td><td class="num adj n" data-v="-1.728068078596357"><span class="adjnum">-1.73</span><span class="bar" aria-hidden="true"><i class="neg" style="width:19.0%"></i></span></td><td class="num" data-v="-1.7819078136554105">-1.78</td><td class="num" data-v="-11.39240506329114">-11.39</td></tr>
-<tr><th scope="row" class="txt player" data-v="Frank Nazar">Frank Nazar</th><td class="txt" data-v="C">C</td><td class="num" data-v="5">5</td><td class="num" data-v="74.7">74.7</td><td class="num" data-v="-5">-5</td><td class="num" data-v="-4">-4</td><td class="num" data-v="-1">-1</td><td class="num" data-v="-1.9284792274226705">-1.93</td><td class="num adj n" data-v="-2.0715207725773297"><span class="adjnum">-2.07</span><span class="bar" aria-hidden="true"><i class="neg" style="width:22.8%"></i></span></td><td class="num" data-v="-2.6364466078491025">-2.64</td><td class="num" data-v="-3.21285140562249">-3.21</td></tr>
-<tr><th scope="row" class="txt player" data-v="Patrick Kane">Patrick Kane</th><td class="txt" data-v="R">R</td><td class="num" data-v="7">7</td><td class="num" data-v="110.05">110.0</td><td class="num" data-v="-8">-8</td><td class="num" data-v="-5">-5</td><td class="num" data-v="-3">-3</td><td class="num" data-v="-2.8410861978295165">-2.84</td><td class="num adj n" data-v="-2.1589138021704835"><span class="adjnum">-2.16</span><span class="bar" aria-hidden="true"><i class="neg" style="width:23.8%"></i></span></td><td class="num" data-v="-3.1548134693307253">-3.15</td><td class="num" data-v="-2.7260336210813265">-2.73</td></tr>
-<tr><th scope="row" class="txt player" data-v="Dominic Toninato">Dominic Toninato</th><td class="txt" data-v="C">C</td><td class="num" data-v="3">3</td><td class="num" data-v="26.5">26.5</td><td class="num" data-v="-3">-3</td><td class="num" data-v="-3">-3</td><td class="num" data-v="0">0</td><td class="num" data-v="-0.6841325237844815">-0.68</td><td class="num adj n" data-v="-2.3158674762155185"><span class="adjnum">-2.32</span><span class="bar" aria-hidden="true"><i class="neg" style="width:25.5%"></i></span></td><td class="num" data-v="-2.506390024318311">-2.51</td><td class="num" data-v="-6.7924528301886795">-6.79</td></tr>
-<tr><th scope="row" class="txt player" data-v="Ryan Donato">Ryan Donato</th><td class="txt" data-v="C">C</td><td class="num" data-v="7">7</td><td class="num" data-v="65.75">65.8</td><td class="num" data-v="-7">-7</td><td class="num" data-v="-6">-6</td><td class="num" data-v="-1">-1</td><td class="num" data-v="-1.6974231486350815">-1.70</td><td class="num adj n" data-v="-4.302576851364918"><span class="adjnum">-4.30</span><span class="bar" aria-hidden="true"><i class="neg" style="width:47.4%"></i></span></td><td class="num" data-v="-5.302674994107942">-5.30</td><td class="num" data-v="-5.475285171102661">-5.48</td></tr>
-<tr><th scope="row" class="txt player" data-v="Nick Lardis">Nick Lardis</th><td class="txt" data-v="L">L</td><td class="num" data-v="6">6</td><td class="num" data-v="56.5">56.5</td><td class="num" data-v="-6">-6</td><td class="num" data-v="-6">-6</td><td class="num" data-v="0">0</td><td class="num" data-v="-1.4586221733518192">-1.46</td><td class="num adj n" data-v="-4.541377826648181"><span class="adjnum">-4.54</span><span class="bar" aria-hidden="true"><i class="neg" style="width:50.0%"></i></span></td><td class="num" data-v="-5.41975238203914">-5.42</td><td class="num" data-v="-6.371681415929204">-6.37</td></tr>
-</tbody>
+<table id="table">
+<caption class="sr-only">Skaters, 5-on-5 adjusted plus-minus, sortable</caption>
+<thead><tr id="head"></tr></thead>
+<tbody id="body"><tr><td class="state" colspan="12">Loading the season&hellip;</td></tr></tbody>
 </table>
 </div>
+<button type="button" class="more" id="more" hidden></button>
 <p class="hint">Player and Adjusted stay pinned. Swipe the table sideways for the columns in between.</p>
-<p class="prov">Shift data: 3 from html-toi, 4 from shiftcharts. No games excluded.</p>
-</section>
+<p class="prov" id="prov"></p>
+<div id="excluded"></div>
 
 <details class="legend">
-  <summary>What the columns mean</summary>
-  <dl><div class='lrow'><dt>TOI_5v5</dt><dd>Minutes this skater was on the ice at 5-on-5 with both goalies in net. Power plays, 4-on-4, 3-on-3 overtime and empty-net time are all excluded.</dd></div><div class='lrow'><dt>Official_PM</dt><dd>The plus-minus the NHL publishes. It counts every situation except power-play goals, so empty-net goals and shorthanded goals land in it.</dd></div><div class='lrow'><dt>GD_on</dt><dd>Goals for minus goals against while this skater was on the ice, counting only clean 5-on-5 play.</dd></div><div class='lrow'><dt>NonClean</dt><dd>Official_PM minus GD_on: how much of the published number came from somewhere other than 5-on-5 - empty nets, 4-on-4, shorthanded goals. A big number here means the official figure is telling you about special teams, not about this skater&#x27;s 5-on-5 play.</dd></div><div class='lrow'><dt>Expected</dt><dd>The 5-on-5 goal differential an average skater on this team would have posted in the same number of minutes. On a team being outscored this is negative for everyone.</dd></div><div class='lrow'><dt>Adjusted</dt><dd>GD_on minus Expected: 5-on-5 goal differential versus what an average Hawk would have in the same minutes. Positive means the team did better with them on the ice than it did on average.</dd></div><div class='lrow'><dt>Rel</dt><dd>On-ice differential compared with the same team&#x27;s differential while this skater was on the bench, scaled by the minutes split.</dd></div><div class='lrow'><dt>GD_on/60</dt><dd>GD_on expressed as a rate per 60 minutes of 5-on-5, so short-TOI skaters are comparable with regulars - though a small number of minutes makes the rate jumpy.</dd></div></dl>
+  <summary>What the columns and filters mean</summary>
+  <dl><div class='lrow'><dt>Scope</dt><dd>League, a conference, a division or one team. A skater traded mid-season shows as one combined row (&quot;CHI/NYR&quot;) league-wide and as a separate row for each club when you pick that club.</dd></div><div class='lrow'><dt>Games</dt><dd>Season to date, each skater&#x27;s last 5, 10 or 20 games within the other filters, or a custom date range.</dd></div><div class='lrow'><dt>TOI_5v5</dt><dd>Minutes on the ice at 5-on-5 with both goalies in net. Power plays, 4-on-4, 3-on-3 overtime and empty-net time are all excluded.</dd></div><div class='lrow'><dt>Official_PM</dt><dd>The plus-minus the NHL publishes, over the same games. It counts every situation except power-play goals, so empty-net and shorthanded goals land in it.</dd></div><div class='lrow'><dt>GD_on</dt><dd>Goals for minus goals against while the skater was on the ice, counting only clean 5-on-5 play.</dd></div><div class='lrow'><dt>NonClean</dt><dd>Official_PM minus GD_on: the part of the published number earned away from 5-on-5 - empty nets, 4-on-4, shorthanded goals.</dd></div><div class='lrow'><dt>Expected</dt><dd>Built game by game: the team&#x27;s 5-on-5 goal differential in each game times the skater&#x27;s share of that game&#x27;s 5-on-5 minutes, summed. On a team being outscored it is negative for everyone.</dd></div><div class='lrow'><dt>Adjusted</dt><dd>GD_on minus Expected: how the team did with this skater on the ice compared with how it did overall in the same games. Every team&#x27;s Adjusted sums to zero in every game.</dd></div><div class='lrow'><dt>Rel</dt><dd>On-ice differential compared with the same team&#x27;s differential while the skater was on the bench in those games, scaled by the minutes split.</dd></div><div class='lrow'><dt>GD_on/60</dt><dd>GD_on per 60 minutes of 5-on-5. Rates are jumpy on small samples, which is what the minimum-TOI filter is for.</dd></div><div class='lrow'><dt>Per 60</dt><dd>Switches GD_on, Expected, Adjusted and Rel to rates per 60 minutes of 5-on-5, so a third-pair defenceman and a top-line centre compare on equal footing. Official_PM and NonClean stay as totals.</dd></div></dl>
 </details>
 
 <footer>
-  <p>Built from the NHL's public play-by-play, shift-chart and boxscore feeds.
-  Only goals with <code>situationCode 1551</code> (five skaters a side, both
-  goalies in net) count toward GD_on. Tap a column heading to sort.</p>
-  <p>Small samples move these numbers a lot early in a season: a single goal
-  can swing Adjusted by more than a point.</p>
-  <p><a href="hawks_adjusted_pm.csv">Download the full CSV</a> (every column,
-  including the ones not shown here).</p>
+  <p>Built from the NHL's public play-by-play, shift-chart, boxscore, standings and
+  skater-bio feeds. Only goals with <code>situationCode 1551</code> (five skaters a
+  side, both goalies in net) count toward GD_on. Tap a column heading to sort.
+  Filters are saved in the address bar, so you can share a view by sharing the link.</p>
+  <p>Small samples move these numbers a lot: a single goal can swing Adjusted by
+  more than a point.</p>
+  <p><button type="button" class="linkbtn" id="csv">Download this view as CSV</button>
+  &middot; <a href="data/index.json">Raw data</a></p>
 </footer>
 </div>
 <script>
 (function () {
-  document.querySelectorAll("table").forEach(function (table) {
-    var body = table.tBodies[0];
-    if (!body) return;
-    var heads = Array.prototype.slice.call(table.tHead.rows[0].cells);
+"use strict";
+var DEFAULT_MIN = 50;
+var PAGE_ROWS = 100;
+var COLS = [
+  {k: "name", h: "Player", a: "Player", t: "txt"},
+  {k: "team", h: "Team", a: "Team", t: "txt"},
+  {k: "pos", h: "Pos", a: "Pos", t: "txt"},
+  {k: "gp", h: "GP", a: "GP", t: "num", d: 0, tip: "Games in this selection"},
+  {k: "toi", h: "TOI_5v5", a: "TOI", t: "num", d: 1, tip: "Minutes at 5v5 with both goalies in net"},
+  {k: "pm", h: "Official_PM", a: "Off +/-", t: "num", d: 0, s: 1, tip: "The NHL's published plus-minus"},
+  {k: "gd", h: "GD_on", a: "GD on", t: "num", d: 0, s: 1, rate: 1, tip: "5v5 goal differential on ice"},
+  {k: "nc", h: "NonClean", a: "NonCln", t: "num", d: 0, s: 1, tip: "Official minus 5v5"},
+  {k: "exp", h: "Expected", a: "Exp", t: "num", d: 2, s: 1, rate: 1, tip: "Team GD in each game x share of that game's 5v5 minutes"},
+  {k: "adj", h: "Adjusted", a: "Adj", t: "num", d: 2, s: 1, rate: 1, tip: "GD_on minus Expected"},
+  {k: "rel", h: "Rel", a: "Rel", t: "num", d: 2, s: 1, rate: 1, tip: "On-ice vs the same team with the skater off"},
+  {k: "gd60", h: "GD_on/60", a: "GD/60", t: "num", d: 2, s: 1, tip: "GD_on per 60 minutes of 5v5"}
+];
+var POS_LABEL = {C: "C", L: "LW", R: "RW", D: "D"};
+var $ = function (id) { return document.getElementById(id); };
 
-    heads.forEach(function (th, index) {
-      var button = th.querySelector("button");
-      if (!button) return;
-      button.addEventListener("click", function () {
-        var numeric = th.dataset.type === "num";
-        var current = th.getAttribute("aria-sort");
-        // First click on a new column: numbers open descending, names ascending.
-        var descending = current === "none" ? numeric : current !== "descending";
+var MANIFEST = null, D = null;
+var S = defaults();
+var result = [], showAll = false;
 
-        heads.forEach(function (other) { other.setAttribute("aria-sort", "none"); });
-        th.setAttribute("aria-sort", descending ? "descending" : "ascending");
+function defaults() {
+  return {season: "", scope: "", pos: "", games: "", from: "", to: "", min: DEFAULT_MIN,
+          venue: "", rookies: false, q: "", per60: false, sort: "adj", dir: "desc"};
+}
 
-        var rows = Array.prototype.slice.call(body.rows);
-        rows.sort(function (a, b) {
-          var x = a.cells[index].getAttribute("data-v");
-          var y = b.cells[index].getAttribute("data-v");
-          // Blanks ("--" values) always sort to the bottom.
-          var xe = x === "" || x === null, ye = y === "" || y === null;
-          if (xe || ye) return xe && ye ? 0 : (xe ? 1 : -1);
-          if (numeric) {
-            var d = parseFloat(x) - parseFloat(y);
-            return descending ? -d : d;
-          }
-          var c = String(x).localeCompare(String(y));
-          return descending ? -c : c;
-        });
-        rows.forEach(function (row) { body.appendChild(row); });
-      });
-    });
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c];
   });
+}
+function fold(s) {
+  return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+// -- URL state ------------------------------------------------------------
+function readUrl() {
+  var p = new URLSearchParams(location.search), s = defaults();
+  s.season = p.get("season") || "";
+  if (p.get("team")) s.scope = "t:" + p.get("team").toUpperCase();
+  else if (p.get("div")) s.scope = "d:" + p.get("div").toUpperCase();
+  else if (p.get("conf")) s.scope = "c:" + p.get("conf").toUpperCase();
+  var pos = (p.get("pos") || "").toUpperCase();
+  if (["F", "D", "C", "LW", "RW"].indexOf(pos) >= 0) s.pos = pos;
+  var g = p.get("games") || "";
+  if (["5", "10", "20"].indexOf(g) >= 0) s.games = g;
+  if (p.get("from") || p.get("to")) { s.games = "custom"; s.from = p.get("from") || ""; s.to = p.get("to") || ""; }
+  if (p.get("min") !== null && !isNaN(parseFloat(p.get("min")))) s.min = Math.max(0, parseFloat(p.get("min")));
+  var v = p.get("venue"); if (v === "home" || v === "away") s.venue = v;
+  s.rookies = p.get("rookies") === "1";
+  s.q = p.get("q") || "";
+  s.per60 = p.get("per60") === "1";
+  var sort = p.get("sort");
+  if (sort && COLS.some(function (c) { return c.k === sort; })) s.sort = sort;
+  if (p.get("dir") === "asc" || p.get("dir") === "desc") s.dir = p.get("dir");
+  return s;
+}
+function writeUrl() {
+  var p = new URLSearchParams();
+  if (S.season && MANIFEST && S.season !== MANIFEST["default"]) p.set("season", S.season);
+  if (S.scope) p.set({t: "team", d: "div", c: "conf"}[S.scope[0]], S.scope.slice(2));
+  if (S.pos) p.set("pos", S.pos);
+  if (S.games === "custom") { if (S.from) p.set("from", S.from); if (S.to) p.set("to", S.to); }
+  else if (S.games) p.set("games", S.games);
+  if (S.min !== DEFAULT_MIN) p.set("min", String(S.min));
+  if (S.venue) p.set("venue", S.venue);
+  if (S.rookies) p.set("rookies", "1");
+  if (S.q) p.set("q", S.q);
+  if (S.per60) p.set("per60", "1");
+  if (S.sort !== "adj") p.set("sort", S.sort);
+  if (S.dir !== "desc" || S.sort !== "adj") p.set("dir", S.dir);
+  var qs = p.toString();
+  history.replaceState(null, "", qs ? "?" + qs : location.pathname);
+}
+
+// -- data -----------------------------------------------------------------
+function getJson(url, fresh) {
+  return fetch(url, fresh ? {cache: "no-cache"} : {}).then(function (r) {
+    if (!r.ok) throw new Error(url + ": HTTP " + r.status);
+    return r.json();
+  });
+}
+function load(seasonId) {
+  var entry = MANIFEST.seasons.filter(function (s) { return s.id === seasonId; })[0]
+           || MANIFEST.seasons[0];
+  S.season = entry.id;
+  var bust = "?v=" + encodeURIComponent(entry.updated || "");
+  return Promise.all([
+    getJson("data/" + entry.file + bust),
+    D && D.playersRaw ? Promise.resolve(D.playersRaw) : getJson("data/" + MANIFEST.players + bust)
+  ]).then(function (res) { D = prepare(res[0], res[1]); });
+}
+function prepare(sf, pl) {
+  var d = {playersRaw: pl, season: sf.season, updated: sf.updated};
+  d.teams = sf.teams.rows.map(function (r) { return {abbr: r[0], name: r[1], conf: r[2], div: r[3]}; });
+  d.confs = sf.confs; d.divs = sf.divs;
+  d.games = sf.games.rows.map(function (r) {
+    return {id: r[0], date: r[1], away: r[2], home: r[3], sec: r[4], agf: r[5], hgf: r[6], src: r[7]};
+  });
+  d.sources = sf.sources || [];
+  var rows = sf.rows.rows, n = rows.length;
+  d.rG = new Int32Array(n); d.rH = new Uint8Array(n); d.rToi = new Int32Array(n);
+  d.rGf = new Int16Array(n); d.rGa = new Int16Array(n); d.rPm = new Int16Array(n);
+  var byPlayer = new Map();
+  for (var i = 0; i < n; i++) {
+    var r = rows[i];
+    d.rG[i] = r[1]; d.rH[i] = r[2]; d.rToi[i] = r[3]; d.rGf[i] = r[4]; d.rGa[i] = r[5]; d.rPm[i] = r[6];
+    var list = byPlayer.get(r[0]);
+    if (!list) { list = []; byPlayer.set(r[0], list); }
+    list.push(i);   // rows are stored in game (= date) order
+  }
+  d.players = [];
+  var meta = pl.players, rookies = new Set(sf.rookies || []);
+  byPlayer.forEach(function (list, pid) {
+    var m = meta[String(pid)] || ["Player " + pid, "?", "", ""];
+    d.players.push({pid: pid, name: m[0], key: fold(m[0]), pos: m[1], rookie: rookies.has(pid),
+                    rows: Int32Array.from(list)});
+  });
+  d.excluded = (sf.excluded && sf.excluded.rows) || [];
+  return d;
+}
+
+// -- aggregation (the twin of nhlapm/aggregate.py) ---------------------------
+function gameWindow() {
+  var lo = 0, hi = D.games.length - 1, i;
+  if (S.games === "custom") {
+    if (S.from) { lo = D.games.length; for (i = 0; i < D.games.length; i++) if (D.games[i].date >= S.from) { lo = i; break; } }
+    if (S.to) { hi = -1; for (i = D.games.length - 1; i >= 0; i--) if (D.games[i].date <= S.to) { hi = i; break; } }
+  }
+  return [lo, hi];
+}
+function teamFilter() {
+  if (!S.scope) return null;
+  var kind = S.scope[0], val = S.scope.slice(2);
+  return D.teams.map(function (t) {
+    return kind === "t" ? t.abbr === val : kind === "d" ? t.div === val : t.conf === val;
+  });
+}
+function posOk(pos) {
+  if (!S.pos) return true;
+  if (S.pos === "F") return pos === "C" || pos === "L" || pos === "R";
+  if (S.pos === "D") return pos === "D";
+  return POS_LABEL[pos] === S.pos;
+}
+function compute() {
+  var win = gameWindow(), lo = win[0], hi = win[1];
+  var lastN = (S.games && S.games !== "custom") ? parseInt(S.games, 10) : 0;
+  var teamOk = teamFilter(), venue = S.venue, q = fold(S.q.trim());
+  var minSec = (S.min || 0) * 60, G = D.games;
+  var out = [], i, j;
+  for (i = 0; i < D.players.length; i++) {
+    var p = D.players[i];
+    if (!posOk(p.pos) || (S.rookies && !p.rookie) || (q && p.key.indexOf(q) < 0)) continue;
+    var toi = 0, gf = 0, ga = 0, pm = 0, exp = 0, toff = 0, gdoff = 0, gp = 0, first = {};
+    // Newest first, so "last N" is simply the first N that pass.
+    for (j = p.rows.length - 1; j >= 0; j--) {
+      var r = p.rows[j], g = D.rG[r];
+      if (g < lo || g > hi) continue;
+      var h = D.rH[r];
+      if ((venue === "home" && !h) || (venue === "away" && h)) continue;
+      var game = G[g], tm = h ? game.home : game.away;
+      if (teamOk && !teamOk[tm]) continue;
+      var tgd = h ? game.hgf - game.agf : game.agf - game.hgf;
+      var t = D.rToi[r], gd = D.rGf[r] - D.rGa[r];
+      toi += t; gf += D.rGf[r]; ga += D.rGa[r]; pm += D.rPm[r];
+      if (game.sec) exp += tgd * t / game.sec;
+      toff += game.sec - t; gdoff += tgd - gd;
+      first[tm] = g;
+      gp++;
+      if (lastN && gp >= lastN) break;
+    }
+    if (!gp || toi < minSec) continue;
+    var gdOn = gf - ga, adj = gdOn - exp;
+    var rel = toff ? gdOn - gdoff * (toi / toff) : null;
+    var label = Object.keys(first).sort(function (a, b) { return first[a] - first[b]; })
+      .map(function (k) { return D.teams[k].abbr; }).join("/");
+    out.push({pid: p.pid, name: p.name, team: label, pos: POS_LABEL[p.pos] || p.pos, gp: gp,
+              toi: toi / 60, pm: pm, gd: gdOn, nc: pm - gdOn, exp: exp, adj: adj, rel: rel,
+              gd60: toi ? gdOn * 3600 / toi : null, sec: toi});
+  }
+  return out;
+}
+function value(row, col) {
+  var v = row[col.k];
+  if (S.per60 && col.rate) return (v === null || !row.sec) ? null : v * 3600 / row.sec;
+  return v;
+}
+function sortRows(rows) {
+  var col = COLS.filter(function (c) { return c.k === S.sort; })[0] || COLS[9];
+  var desc = S.dir === "desc";
+  rows.sort(function (a, b) {
+    var x = value(a, col), y = value(b, col);
+    if (x === null || y === null) return x === y ? 0 : (x === null ? 1 : -1);
+    var c = col.t === "num" ? x - y : String(x).localeCompare(String(y));
+    if (c === 0) return b.toi - a.toi;
+    return desc ? -c : c;
+  });
+}
+
+// -- rendering --------------------------------------------------------------
+function visibleCols() { return COLS.filter(function (c) { return !(S.per60 && c.k === "gd60"); }); }
+function fmt(v, col, rate) {
+  if (v === null || v === undefined || (typeof v === "number" && !isFinite(v))) return "--";
+  if (col.t !== "num") return esc(v);
+  var d = rate ? 2 : col.d, r = Number(v.toFixed(d));
+  if (r === 0) return (0).toFixed(d);     // no "-0.00" washed red for nothing
+  var s = r.toFixed(d);
+  return col.s && r > 0 ? "+" + s : s;
+}
+function renderHead() {
+  var cells = visibleCols().map(function (c) {
+    var rate = S.per60 && c.rate;
+    var sort = c.k === S.sort ? (S.dir === "desc" ? "descending" : "ascending") : "none";
+    var cls = (c.t === "num" ? "num" : "txt") + (c.k === "adj" ? " adjh" : "");
+    return '<th scope="col" class="' + cls + '" aria-sort="' + sort + '" data-k="' + c.k + '"' +
+      (c.tip ? ' title="' + esc(c.tip) + '"' : "") + '><button type="button">' +
+      '<span class="full">' + esc(c.h + (rate ? "/60" : "")) + '</span><span class="abbr">' +
+      esc(c.a + (rate ? "/60" : "")) + '</span><span class="arrow" aria-hidden="true"></span></button></th>';
+  });
+  $("head").innerHTML = cells.join("");
+}
+function renderBody() {
+  var cols = visibleCols(), adjCol = COLS[9];
+  if (!result.length) {
+    $("body").innerHTML = '<tr><td class="state" colspan="' + cols.length +
+      '">No skaters match these filters. Try lowering the minimum TOI.</td></tr>';
+    $("more").hidden = true;
+    return;
+  }
+  var peak = 0;
+  result.forEach(function (r) { var v = value(r, adjCol); if (v !== null) peak = Math.max(peak, Math.abs(v)); });
+  peak = peak || 1;
+  var n = showAll ? result.length : Math.min(PAGE_ROWS, result.length), html = [];
+  for (var i = 0; i < n; i++) {
+    var row = result[i], cells = [];
+    for (var c = 0; c < cols.length; c++) {
+      var col = cols[c], rate = S.per60 && col.rate, v = value(row, col), text = fmt(v, col, rate);
+      if (col.k === "name") cells.push('<th scope="row" class="txt player">' + text + "</th>");
+      else if (col.k === "adj") {
+        var shown = v === null ? 0 : Number(v.toFixed(2));
+        var wash = shown === 0 ? "z" : (shown > 0 ? "p" : "n");
+        var w = Math.min(100, Math.abs(v || 0) / peak * 100) / 2;
+        var bar = shown === 0 ? "" : '<i class="' + (shown > 0 ? "pos" : "neg") + '" style="width:' + w.toFixed(1) + '%"></i>';
+        cells.push('<td class="num adj ' + wash + '"><span class="adjnum">' + text +
+                   '</span><span class="bar" aria-hidden="true">' + bar + "</span></td>");
+      } else cells.push('<td class="' + (col.t === "num" ? "num" : "txt") + (col.k === "team" ? " tm" : "") + '">' + text + "</td>");
+    }
+    html.push("<tr>" + cells.join("") + "</tr>");
+  }
+  $("body").innerHTML = html.join("");
+  var more = $("more");
+  more.hidden = showAll || result.length <= PAGE_ROWS;
+  more.textContent = "Show all " + result.length + " skaters";
+}
+function tile(label, val, sub) {
+  return '<div class="tile"><span class="tlabel">' + esc(label) + '</span><span class="tval">' +
+    esc(val) + "</span>" + (sub ? '<span class="tsub">' + esc(sub) + "</span>" : "") + "</div>";
+}
+function signed(n, d) { var r = Number(n.toFixed(d || 0)); return (r > 0 ? "+" : "") + r.toFixed(d || 0); }
+function renderTiles() {
+  var win = gameWindow(), lo = win[0], hi = win[1], G = D.games, i;
+  var teamOk = teamFilter(), lastN = (S.games && S.games !== "custom") ? parseInt(S.games, 10) : 0;
+  if (S.scope && S.scope[0] === "t") {
+    var ti = D.teams.findIndex(function (t) { return t.abbr === S.scope.slice(2); });
+    var gf = 0, ga = 0, sec = 0, n = 0;
+    for (i = hi; i >= lo; i--) {
+      var g = G[i], home = g.home === ti;
+      if (g.home !== ti && g.away !== ti) continue;
+      if ((S.venue === "home" && !home) || (S.venue === "away" && home)) continue;
+      gf += home ? g.hgf : g.agf; ga += home ? g.agf : g.hgf; sec += g.sec; n++;
+      if (lastN && n >= lastN) break;
+    }
+    $("tiles").innerHTML = tile("5v5 goals for", String(gf)) + tile("5v5 goals against", String(ga)) +
+      tile("5v5 differential", signed(gf - ga), sec ? signed((gf - ga) * 3600 / sec, 2) + " per 60" : "") +
+      tile("5v5 minutes", Math.round(sec / 60).toLocaleString(), n + " game" + (n === 1 ? "" : "s"));
+  } else {
+    var games = 0, goals = 0, mins = 0;
+    for (i = lo; i <= hi; i++) {
+      var gm = G[i];
+      if (teamOk && !teamOk[gm.home] && !teamOk[gm.away]) continue;
+      games++; goals += gm.hgf + gm.agf; mins += gm.sec;
+    }
+    $("tiles").innerHTML = tile("Games", games.toLocaleString(), lastN ? "season window; last " + lastN + " applies per skater" : "") +
+      tile("Skaters listed", result.length.toLocaleString(), "of " + D.players.length.toLocaleString() + " who played") +
+      tile("5v5 goals", goals.toLocaleString(), mins ? (goals * 3600 / mins).toFixed(2) + " per 60" : "") +
+      tile("Games excluded", String(D.excluded.length), D.excluded.length ? "failed verification" : "none");
+  }
+}
+function renderMeta() {
+  var last = D.games.length ? D.games[D.games.length - 1].date : "";
+  $("through").textContent = last ? " · games through " + niceDate(last) : "";
+  var counts = {};
+  D.games.forEach(function (g) { var s = D.sources[g.src] || "?"; counts[s] = (counts[s] || 0) + 1; });
+  $("prov").textContent = D.games.length.toLocaleString() + " games included. Shift data: " +
+    Object.keys(counts).sort().map(function (k) { return counts[k] + " from " + k; }).join(", ") +
+    ". Every game is checked against the boxscore's published time on ice and plus-minus before it is counted.";
+  if (D.excluded.length) {
+    $("excluded").innerHTML = '<details class="excl"><summary>' + D.excluded.length +
+      " game" + (D.excluded.length === 1 ? "" : "s") + " excluded (failed verification)</summary><ul>" +
+      D.excluded.map(function (e) {
+        return "<li>" + esc(e[1] + " " + e[2] + " @ " + e[3]) + " &mdash; " + esc(e[4]) + "</li>";
+      }).join("") + "</ul></details>";
+  } else $("excluded").innerHTML = '<p class="prov">No games excluded.</p>';
+}
+function niceDate(iso) {
+  var p = iso.split("-"), m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return m[parseInt(p[1], 10) - 1] + " " + parseInt(p[2], 10);
+}
+function activeSummary() {
+  var bits = [];
+  var o = $("scope").options[$("scope").selectedIndex];
+  bits.push(o ? o.textContent : "League");
+  if (S.pos) bits.push($("pos").options[$("pos").selectedIndex].textContent);
+  if (S.games === "custom") bits.push((S.from || "start") + " to " + (S.to || "today"));
+  else if (S.games) bits.push("last " + S.games);
+  if (S.venue) bits.push(S.venue);
+  if (S.rookies) bits.push("rookies");
+  bits.push("≥" + S.min + " min");
+  if (S.per60) bits.push("per 60");
+  if (S.q) bits.push("“" + S.q + "”");
+  $("activeSummary").textContent = bits.join(" · ");
+}
+function refresh() {
+  result = compute();
+  sortRows(result);
+  renderHead(); renderBody(); renderTiles(); activeSummary();
+  $("count").textContent = result.length.toLocaleString() + " skater" + (result.length === 1 ? "" : "s") +
+    (result.length > PAGE_ROWS && !showAll ? ", top " + PAGE_ROWS + " shown" : "");
+  writeUrl();
+}
+
+// -- controls ---------------------------------------------------------------
+function buildScope() {
+  var sel = $("scope"), h = ['<option value="">League</option>'];
+  var confs = Object.keys(D.confs).sort(function (a, b) { return D.confs[a].localeCompare(D.confs[b]); });
+  h.push('<optgroup label="Conference">' + confs.map(function (c) {
+    return '<option value="c:' + esc(c) + '">' + esc(D.confs[c]) + "</option>"; }).join("") + "</optgroup>");
+  var divs = Object.keys(D.divs).sort(function (a, b) { return D.divs[a].localeCompare(D.divs[b]); });
+  h.push('<optgroup label="Division">' + divs.map(function (c) {
+    return '<option value="d:' + esc(c) + '">' + esc(D.divs[c]) + "</option>"; }).join("") + "</optgroup>");
+  var teams = D.teams.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+  h.push('<optgroup label="Team">' + teams.map(function (t) {
+    return '<option value="t:' + esc(t.abbr) + '">' + esc(t.name) + "</option>"; }).join("") + "</optgroup>");
+  sel.innerHTML = h.join("");
+  if (S.scope && !Array.prototype.some.call(sel.options, function (o) { return o.value === S.scope; })) S.scope = "";
+  sel.value = S.scope;
+}
+function syncControls() {
+  buildScope();
+  $("pos").value = S.pos; $("games").value = S.games;
+  $("dateWrap").hidden = S.games !== "custom";
+  var first = D.games.length ? D.games[0].date : "", last = D.games.length ? D.games[D.games.length - 1].date : "";
+  ["from", "to"].forEach(function (id) { $(id).min = first; $(id).max = last; });
+  $("from").value = S.from; $("to").value = S.to;
+  $("min").value = S.min; $("rookies").checked = S.rookies; $("q").value = S.q;
+  setSeg("venue", S.venue); setSeg("mode", S.per60 ? "60" : "");
+  var ss = $("season");
+  if (MANIFEST.seasons.length > 1) {
+    $("seasonWrap").hidden = false;
+    ss.innerHTML = MANIFEST.seasons.map(function (s) {
+      return '<option value="' + esc(s.id) + '">' + esc(s.label) + "</option>"; }).join("");
+    ss.value = S.season;
+  }
+  var entry = MANIFEST.seasons.filter(function (s) { return s.id === S.season; })[0];
+  if (entry) $("seasonLabel").textContent = entry.label;
+}
+function setSeg(id, v) {
+  Array.prototype.forEach.call($(id).querySelectorAll("button"), function (b) {
+    b.setAttribute("aria-pressed", String(b.dataset.v === v));
+  });
+}
+function on(id, ev, fn) { $(id).addEventListener(ev, fn); }
+function wire() {
+  on("scope", "change", function () { S.scope = this.value; showAll = false; refresh(); });
+  on("pos", "change", function () { S.pos = this.value; showAll = false; refresh(); });
+  on("games", "change", function () {
+    S.games = this.value; $("dateWrap").hidden = S.games !== "custom";
+    if (S.games !== "custom") { S.from = S.to = ""; $("from").value = $("to").value = ""; }
+    showAll = false; refresh();
+  });
+  on("from", "change", function () { S.from = this.value; refresh(); });
+  on("to", "change", function () { S.to = this.value; refresh(); });
+  on("min", "input", function () { var v = parseFloat(this.value); S.min = isNaN(v) ? 0 : Math.max(0, v); refresh(); });
+  on("rookies", "change", function () { S.rookies = this.checked; refresh(); });
+  var timer = null;
+  on("q", "input", function () {
+    var v = this.value; clearTimeout(timer);
+    timer = setTimeout(function () { S.q = v; refresh(); }, 140);
+  });
+  $("venue").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    S.venue = b.dataset.v; setSeg("venue", S.venue); refresh();
+  });
+  $("mode").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    S.per60 = b.dataset.v === "60"; setSeg("mode", b.dataset.v);
+    if (!S.per60 && S.sort === "gd60") S.sort = "adj";
+    refresh();
+  });
+  $("head").addEventListener("click", function (e) {
+    var th = e.target.closest("th"); if (!th) return;
+    var k = th.dataset.k, col = COLS.filter(function (c) { return c.k === k; })[0];
+    if (S.sort === k) S.dir = S.dir === "desc" ? "asc" : "desc";
+    else { S.sort = k; S.dir = col.t === "num" ? "desc" : "asc"; }
+    refresh();
+  });
+  on("more", "click", function () { showAll = true; refresh(); });
+  on("reset", "click", function () {
+    var season = S.season; S = defaults(); S.season = season; showAll = false;
+    syncControls(); refresh();
+  });
+  on("season", "change", function () {
+    var id = this.value;
+    $("body").innerHTML = '<tr><td class="state" colspan="12">Loading&hellip;</td></tr>';
+    load(id).then(function () { syncControls(); renderMeta(); refresh(); }).catch(fail);
+  });
+  on("csv", "click", downloadCsv);
+}
+function downloadCsv() {
+  var cols = ["player", "player_id", "team", "pos", "gp", "toi_5v5", "official_pm", "gd_on",
+              "nonclean", "expected", "adjusted", "rel", "gd_on_per_60", "adjusted_per_60"];
+  var lines = [cols.join(",")];
+  result.forEach(function (r) {
+    var adj60 = r.sec ? r.adj * 3600 / r.sec : "";
+    lines.push(['"' + r.name.replace(/"/g, '""') + '"', r.pid, r.team, r.pos, r.gp, r.toi.toFixed(2),
+      r.pm, r.gd, r.nc, r.exp.toFixed(3), r.adj.toFixed(3), r.rel === null ? "" : r.rel.toFixed(3),
+      r.gd60 === null ? "" : r.gd60.toFixed(3), adj60 === "" ? "" : adj60.toFixed(3)].join(","));
+  });
+  var blob = new Blob([lines.join("\n") + "\n"], {type: "text/csv"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "adjusted_pm_" + (S.scope ? S.scope.slice(2).toLowerCase() : "league") + "_" + S.season + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+}
+function fail(err) {
+  $("body").innerHTML = '<tr><td class="state" colspan="12">Could not load the data (' +
+    esc(err && err.message || err) + ").</td></tr>";
+}
+
+// Read-only hook for automated checks: the rows behind the current view.
+window.apmView = function () { return {result: result, state: S, games: D && D.games.length}; };
+
+// Filters start collapsed on a phone, open on a wide screen.
+if (window.matchMedia && !window.matchMedia("(min-width: 760px)").matches) $("filters").open = false;
+S = readUrl();
+getJson("data/index.json", true).then(function (m) {
+  MANIFEST = m;
+  return load(S.season || m["default"]);
+}).then(function () {
+  syncControls(); wire(); renderMeta(); refresh();
+}).catch(fail);
 })();
 </script>
 </body>

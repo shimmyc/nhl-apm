@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 .DS_Store
+# Raw API responses: kept in the GitHub Actions cache, never committed.
+cache/

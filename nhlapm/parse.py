@@ -298,3 +298,33 @@ def build_game_context(ref: GameRef, pbp: dict, shift_payload: dict) -> GameCont
         periods_in_play=periods_with_play(pbp),
         shift_warnings=warnings,
     )
+
+
+def parse_schedule_week(payload: dict, *, game_type: int = config.GAME_TYPE_REGULAR,
+                        states: tuple[str, ...] = config.COMPLETED_GAME_STATES
+                        ) -> tuple[list[GameRef], int]:
+    """League-wide weekly schedule -> (completed games, scheduled-but-unplayed count).
+
+    The weekly feed carries the date on the day, not on the game, so the date
+    is taken from the enclosing `gameWeek` entry.
+    """
+    completed: list[GameRef] = []
+    pending = 0
+    for day in payload.get("gameWeek", []):
+        for game in day.get("games", []):
+            if game.get("gameType") != game_type:
+                continue
+            if game.get("gameState") not in states:
+                pending += 1
+                continue
+            home, away = game["homeTeam"], game["awayTeam"]
+            completed.append(GameRef(
+                game_id=game["id"],
+                date=game.get("gameDate") or day.get("date", ""),
+                home_abbrev=home.get("abbrev", "?"),
+                away_abbrev=away.get("abbrev", "?"),
+                home_score=home.get("score", 0),
+                away_score=away.get("score", 0),
+                state=game.get("gameState", ""),
+            ))
+    return completed, pending

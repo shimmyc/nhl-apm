@@ -1,4 +1,6 @@
-"""Aggregate clean-5v5 time and goals into per-player adjusted plus-minus."""
+"""Goal eligibility rules, the official +/- reader, and the output row type.
+
+Aggregation itself lives in aggregate.py, over the per-game rows of records.py."""
 
 from __future__ import annotations
 
@@ -6,31 +8,6 @@ from dataclasses import dataclass, field
 
 from . import config
 from .parse import GameContext, Goal
-from .timeline import GameTimeline
-
-SECONDS_PER_HOUR = 3600.0
-
-
-@dataclass
-class PlayerAccumulator:
-    player_id: int
-    name: str
-    position: str
-    toi_seconds: int = 0
-    gf_on: int = 0
-    ga_on: int = 0
-    official_pm: int = 0
-    games: set[int] = field(default_factory=set)
-
-
-@dataclass
-class GameSummary:
-    game_id: int
-    label: str
-    clean_5v5_seconds: int
-    gf: int
-    ga: int
-    source: str = config.SOURCE_SHIFTCHARTS
 
 
 @dataclass
@@ -50,21 +27,6 @@ class Diagnostics:
     non_1551_goals_excluded: int = 0
     toi_identity_ok: bool = True
     toi_identity_detail: str = ""
-
-
-@dataclass
-class SeasonStats:
-    team: str
-    players: dict[int, PlayerAccumulator] = field(default_factory=dict)
-    team_toi_seconds: int = 0
-    team_gf: int = 0
-    team_ga: int = 0
-    games: list[GameSummary] = field(default_factory=list)
-    diagnostics: Diagnostics = field(default_factory=Diagnostics)
-
-    @property
-    def team_gd(self) -> int:
-        return self.team_gf - self.team_ga
 
 
 def qualifying_goals(goals: list[Goal], diagnostics: Diagnostics) -> list[Goal]:
@@ -120,136 +82,6 @@ def counts_for_plus_minus(situation_code: str, scoring_team_is_home: bool) -> bo
     return scoring <= defending
 
 
-def process_game(stats: SeasonStats, context: GameContext, timeline: GameTimeline,
-                 boxscore: dict | None = None) -> GameSummary:
-    """Fold one game's clean-5v5 time and goals into the season accumulators."""
-    team_id = context.team_id_for(stats.team)
-    if team_id is None:
-        raise ValueError(f"{stats.team} does not appear in game {context.ref.game_id}")
-
-    skater_ids = {
-        pid for pid, player in context.roster.items()
-        if player.team_id == team_id and not player.is_goalie
-    }
-
-    # Time on ice at clean 5v5.
-    for player_id in skater_ids:
-        seconds = timeline.occupancy.get(player_id)
-        if not seconds:
-            continue
-        player = context.roster[player_id]
-        accumulator = stats.players.get(player_id)
-        if accumulator is None:
-            accumulator = PlayerAccumulator(player_id, player.name, player.position)
-            stats.players[player_id] = accumulator
-        accumulator.name = player.name
-        accumulator.position = player.position
-        accumulator.games.add(context.ref.game_id)
-        accumulator.toi_seconds += len(seconds & timeline.clean_5v5)
-
-    # Official +/- over exactly the games that made it into this calculation.
-    if boxscore is not None:
-        official = official_plus_minus(boxscore, context, team_id)
-        for player_id in skater_ids:
-            if player_id not in timeline.occupancy:
-                continue  # dressed but never on the ice
-            accumulator = stats.players.get(player_id)
-            if accumulator is None:
-                continue
-            if player_id in official:
-                accumulator.official_pm += official[player_id]
-            else:
-                player = context.roster.get(player_id)
-                stats.diagnostics.missing_from_boxscore.append(
-                    f"{context.ref.game_id} {player.name if player else player_id}")
-
-    stats.team_toi_seconds += timeline.clean_5v5_seconds
-
-    # Goals.
-    game_gf = game_ga = 0
-    for goal in qualifying_goals(context.goals, stats.diagnostics):
-        second = goal.absolute_second
-        state = timeline.state_at(second)
-        if state != (1, 5, 5, 1):
-            stats.diagnostics.code_1551_not_clean_in_shifts.append(
-                f"{context.ref.game_id} P{goal.period} {goal.time_in_period} "
-                f"code 1551 but shifts show {''.join(map(str, state))}"
-            )
-
-        on_ice = timeline.on_ice_at(second, skater_ids)
-        if len(on_ice) != 5:
-            stats.diagnostics.wrong_skater_count_on_ice.append(
-                f"{context.ref.game_id} P{goal.period} {goal.time_in_period} "
-                f"{len(on_ice)} {stats.team} skater(s) on ice for a 1551 goal"
-            )
-
-        # The two feeds must agree on the most basic fact available: the player
-        # the play-by-play credits with the goal has to be on the ice according
-        # to the shift charts.
-        if goal.scorer_id is not None:
-            if goal.absolute_second not in timeline.occupancy.get(goal.scorer_id, ()):
-                scorer = context.roster.get(goal.scorer_id)
-                stats.diagnostics.scorer_not_on_ice.append(
-                    f"{context.ref.game_id} P{goal.period} {goal.time_in_period} "
-                    f"scorer {scorer.name if scorer else goal.scorer_id} "
-                    f"absent from shift data at that second"
-                )
-
-        is_for = goal.scoring_team_id == team_id
-        if is_for:
-            game_gf += 1
-        else:
-            game_ga += 1
-        for player_id in on_ice:
-            accumulator = stats.players.get(player_id)
-            if accumulator is None:
-                player = context.roster[player_id]
-                accumulator = PlayerAccumulator(player_id, player.name, player.position)
-                stats.players[player_id] = accumulator
-            if is_for:
-                accumulator.gf_on += 1
-            else:
-                accumulator.ga_on += 1
-
-    # The reverse check: a goal the shifts call clean 5v5 that the pbp does not.
-    for goal in context.goals:
-        if goal.is_shootout or goal.is_clean_5v5_code:
-            continue
-        if timeline.state_at(goal.absolute_second) == (1, 5, 5, 1):
-            stats.diagnostics.clean_in_shifts_but_other_code.append(
-                f"{context.ref.game_id} P{goal.period} {goal.time_in_period} "
-                f"code {goal.situation_code} but shifts show 1551"
-            )
-
-    stats.team_gf += game_gf
-    stats.team_ga += game_ga
-
-    summary = GameSummary(
-        game_id=context.ref.game_id,
-        label=context.ref.label(),
-        clean_5v5_seconds=timeline.clean_5v5_seconds,
-        gf=game_gf,
-        ga=game_ga,
-        source=context.shift_source,
-    )
-    stats.games.append(summary)
-    return summary
-
-
-def verify_toi_identity(stats: SeasonStats) -> None:
-    """Five skaters are on the ice for every clean-5v5 second, by definition.
-
-    Summed skater TOI must therefore be exactly 5x team elapsed time. If it is
-    not, the timeline and the aggregation disagree and the numbers are wrong.
-    """
-    total = sum(p.toi_seconds for p in stats.players.values())
-    expected = 5 * stats.team_toi_seconds
-    stats.diagnostics.toi_identity_ok = total == expected
-    stats.diagnostics.toi_identity_detail = (
-        f"sum(skater TOI)={total}s vs 5 x team elapsed={expected}s"
-    )
-
-
 @dataclass
 class PlayerRow:
     name: str
@@ -272,52 +104,17 @@ class PlayerRow:
     rel: float | None
     gd_on_per_60: float | None
     team_gd_per_60: float | None
+    team: str = ""
+    adjusted_per_60: float | None = None
 
 
-def build_rows(stats: SeasonStats) -> list[PlayerRow]:
-    team_toi_seconds = stats.team_toi_seconds
-    team_gd = stats.team_gd
-    team_toi_minutes = team_toi_seconds / 60.0
-    team_gd_per_60 = (
-        team_gd * SECONDS_PER_HOUR / team_toi_seconds if team_toi_seconds else None
-    )
+def is_penalty_shot(situation_code: str) -> bool:
+    """A lone shooter against a lone goalie, coded e.g. 1010.
 
-    rows: list[PlayerRow] = []
-    for accumulator in stats.players.values():
-        toi_seconds = accumulator.toi_seconds
-        gd_on = accumulator.gf_on - accumulator.ga_on
-        share = toi_seconds / team_toi_seconds if team_toi_seconds else 0.0
-        expected = team_gd * share
-        off_seconds = team_toi_seconds - toi_seconds
-        gd_off = team_gd - gd_on
-
-        rel = gd_on - gd_off * (toi_seconds / off_seconds) if off_seconds else None
-        gd_on_per_60 = (
-            gd_on * SECONDS_PER_HOUR / toi_seconds if toi_seconds else None
-        )
-
-        rows.append(PlayerRow(
-            name=accumulator.name,
-            player_id=accumulator.player_id,
-            position=accumulator.position,
-            games_played=len(accumulator.games),
-            toi_5v5=toi_seconds / 60.0,
-            gf_on=accumulator.gf_on,
-            ga_on=accumulator.ga_on,
-            gd_on=gd_on,
-            official_pm=accumulator.official_pm,
-            nonclean_pm=accumulator.official_pm - gd_on,
-            team_toi_5v5=team_toi_minutes,
-            team_gd_5v5=team_gd,
-            share=share,
-            expected=expected,
-            adjusted=gd_on - expected,
-            gd_off=gd_off,
-            toi_off=off_seconds / 60.0,
-            rel=rel,
-            gd_on_per_60=gd_on_per_60,
-            team_gd_per_60=team_gd_per_60,
-        ))
-
-    rows.sort(key=lambda row: row.adjusted, reverse=True)
-    return rows
+    Fewer than three skaters a side never happens in open play, so that is the
+    test. The NHL credits the shooter alone with the plus for a penalty-shot
+    goal -- observed in game 2026020065, where Eichel's penalty-shot goal moved
+    his published +/- and no one else's.
+    """
+    return (len(situation_code) == 4 and situation_code.isdigit()
+            and (int(situation_code[1]) < 3 or int(situation_code[2]) < 3))

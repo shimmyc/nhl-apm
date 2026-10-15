@@ -8,6 +8,11 @@ on:
     # late under load; the job is idempotent, so a missed slot self-heals.
     - cron: "0 11 * * *"
   workflow_dispatch:
+    inputs:
+      rebuild:
+        description: "Recompute every game instead of reusing docs/data (refetches anything not in the raw cache)"
+        type: boolean
+        default: false
 
 # Never let two runs write the cache or docs/ at once.
 concurrency:
@@ -16,11 +21,17 @@ concurrency:
 
 permissions:
   contents: write
+  actions: write   # lets the job save the raw-response cache
+
+env:
+  SEASON: "20262027"
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A cold full-season backfill is ~4,000 requests at ~1/sec. The raw cache
+    # is saved even if a run dies, so a timed-out backfill resumes next run.
+    timeout-minutes: 240
 
     steps:
       - name: Check out the repository
@@ -33,26 +44,37 @@ jobs:
 
       # No dependencies to install: the tool is standard library only.
 
-      - name: Fetch new games and compute
-        run: python main.py --quiet-fetch
+      # The raw API cache (~0.5 MB a game, ~650 MB a season) is not committed.
+      # It lives in the Actions cache. Keys are immutable, so each run saves
+      # under its own id and restores the newest by prefix.
+      - name: Restore raw API cache
+        uses: actions/cache/restore@v4
+        with:
+          path: cache
+          key: nhl-raw-${{ env.SEASON }}-${{ github.run_id }}
+          restore-keys: |
+            nhl-raw-${{ env.SEASON }}-
 
-      - name: Verify (publish gate)
-        # Exits non-zero if any TOI or plus-minus check fails. The job stops
-        # here, docs/ is left exactly as published, and GitHub emails the
-        # failure.
-        run: python verify.py
+      - name: Fetch, verify and build
+        id: update
+        # Per-game failures are quarantined and listed on the page. The step
+        # fails -- leaving docs/ exactly as published -- only for systemic
+        # problems: >2% of games failing or a league-level identity breaking.
+        run: python update.py --quiet ${{ inputs.rebuild && '--rebuild' || '' }}
 
-      - name: Build the page
-        # update.py re-runs the gate itself before writing, so the published
-        # page can only ever come from a verified run.
-        run: python update.py
+      - name: Save raw API cache
+        if: always() && steps.update.outputs.fetched != '0'
+        uses: actions/cache/save@v4
+        with:
+          path: cache
+          key: nhl-raw-${{ env.SEASON }}-${{ github.run_id }}
 
-      - name: Commit cache and page
+      - name: Commit processed data and page
         run: |
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add cache docs ./*.csv
+          git add docs ./*.csv
           if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0
@@ -68,8 +90,9 @@ jobs:
           {
             echo "### nhl-apm daily update"
             echo ""
-            if [ -f docs/index.html ]; then
-              echo "- Page: \`docs/index.html\` ($(wc -c < docs/index.html) bytes)"
-            fi
-            echo "- Cached files: $(ls cache | wc -l)"
+            for f in docs/data/*.json docs/index.html; do
+              [ -f "$f" ] && echo "- \`$f\`: $(wc -c < "$f") bytes, $(gzip -c "$f" | wc -c) gzipped"
+            done
+            echo "- Raw cache files: $(ls cache 2>/dev/null | wc -l), $(du -sh cache 2>/dev/null | cut -f1)"
+            echo "- Requests this run: ${{ steps.update.outputs.fetched }}"
           } >> "$GITHUB_STEP_SUMMARY"

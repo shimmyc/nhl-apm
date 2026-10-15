@@ -1,27 +1,32 @@
-"""Daily update: fetch new games, verify, then publish the page.
+"""Daily update: fetch new games league-wide, verify, then publish.
 
     python update.py              # the job CI runs
     python update.py --dry-run    # compute and verify, write nothing
-    python update.py --skip-verify
+    python update.py --rebuild    # recompute every game from the raw cache
 
-Order matters. The page is written only after verify.py exits clean, so a bad
-run leaves the previously published page untouched and exits non-zero for CI to
-report. Nothing is written between the pipeline and the gate.
+Order matters:
+
+1. every completed game is verified on its own as it is computed; a game that
+   fails is quarantined (excluded and listed on the page), not fatal;
+2. the season file is serialised and read back, and the league-level checks
+   run on what was read back -- so they test the file that will ship;
+3. only if those pass is anything written. A systemic failure (too many games
+   quarantined, an identity broken) leaves the published site untouched and
+   exits non-zero for CI to report.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import shutil
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from nhlapm import config, output, site
+from nhlapm import aggregate, checks, config, output, pipeline, site, store
 from nhlapm.fetch import Fetcher
-from nhlapm.pipeline import run_team
-from nhlapm.site import SiteData
 
 ROOT = Path(__file__).resolve().parent
 
@@ -30,110 +35,134 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--season", default=config.SEASON)
-    parser.add_argument("--teams", default=",".join(config.TEAMS),
-                        help=f"comma-separated team codes (default {','.join(config.TEAMS)})")
     parser.add_argument("--cache-dir", default=str(ROOT / "cache"))
     parser.add_argument("--docs-dir", default=str(ROOT / config.DOCS_DIR))
     parser.add_argument("--dry-run", action="store_true",
                         help="run everything but write no files")
-    parser.add_argument("--skip-verify", action="store_true",
-                        help="bypass the publish gate (local use only)")
-    parser.add_argument("--retry-empty-shifts", action="store_true")
+    parser.add_argument("--rebuild", action="store_true",
+                        help="recompute every game instead of reusing the season file")
+    parser.add_argument("--no-html-fallback", action="store_true")
+    parser.add_argument("--quiet", action="store_true", help="one line per run, not per game")
     return parser.parse_args(argv)
 
 
-def run_verify(team: str, season: str, cache_dir: str) -> tuple[bool, str]:
-    """Run verify.py as its own process; its exit code is the gate.
+def _github_output(**values) -> None:
+    path = os.environ.get("GITHUB_OUTPUT")
+    if not path:
+        return
+    with open(path, "a", encoding="utf-8") as handle:
+        for key, value in values.items():
+            handle.write(f"{key}={value}\n")
 
-    Shelling out keeps verify.py the single definition of what 'verified'
-    means, rather than a second copy of the checks living in here.
-    """
-    completed = subprocess.run(
-        [sys.executable, str(ROOT / "verify.py"),
-         "--team", team, "--season", season, "--cache-dir", cache_dir],
-        capture_output=True, text=True, cwd=str(ROOT))
-    return completed.returncode == 0, (completed.stdout or "") + (completed.stderr or "")
+
+def carried_diagnostics(previous: store.Season | None, reused_ids: set[int],
+                        fresh: dict[str, list[str]]) -> dict[str, list[str]]:
+    """Feed-disagreement notes for every included game: fresh plus carried over."""
+    merged: dict[str, list[str]] = {k: list(v) for k, v in fresh.items()}
+    old = (previous.checks.get("diagnostics", {}) if previous else {}) or {}
+    for key, entries in old.items():
+        for entry in entries:
+            try:
+                gid = int(entry.split()[0])
+            except (ValueError, IndexError):
+                continue
+            if gid in reused_ids:
+                merged.setdefault(key, []).append(entry)
+    return {k: sorted(set(v)) for k, v in merged.items()}
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    teams = [t.strip().upper() for t in args.teams.split(",") if t.strip()]
     docs_dir = Path(args.docs_dir)
     started = datetime.now(timezone.utc)
+    print(f"nhl-apm update | season {args.season} | league-wide")
 
-    print(f"nhl-apm update | season {args.season} | teams: {', '.join(teams)}")
-    fetcher = Fetcher(Path(args.cache_dir), verbose=True)
+    fetcher = Fetcher(Path(args.cache_dir), verbose=not args.quiet)
+    previous = None if args.rebuild else store.load_season(docs_dir, args.season)
+    if previous is None and not args.rebuild:
+        print("  no season file yet: this run is a backfill")
 
-    # -- 1. pipeline ------------------------------------------------------
-    runs = []
-    for team in teams:
-        run = run_team(fetcher, team, args.season,
-                       retry_empty_shifts=args.retry_empty_shifts,
-                       on_note=print)
-        if run.error:
-            print(f"FAIL [{team}]: {run.error}", file=sys.stderr)
-            return 1
-        included = len(run.stats.games)
-        print(f"  {team}: {included} game(s) included, {len(run.skipped)} skipped, "
-              f"{len(run.newly_fetched)} newly fetched, {len(run.rows)} skaters")
-        for label, reason in run.skipped:
-            print(f"    skipped {label}: {reason}")
-        runs.append(run)
+    # -- 1. per-game: compute + verify, quarantining failures --------------
+    log = (lambda _m: None) if args.quiet else print
+    run = pipeline.run_league(fetcher, args.season, previous, rebuild=args.rebuild,
+                              html_fallback=not args.no_html_fallback, log=log)
+    season = run.season
+    season.updated = started.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    print(f"  network: {fetcher.api_calls} request(s), {fetcher.cache_hits} cache hit(s)")
+    players, missing = pipeline.collect_player_metadata(
+        fetcher, args.season, season, store.load_players(docs_dir))
+    if missing:
+        pipeline.fill_from_rosters(fetcher, season, players, missing)
+        print(f"  {len(missing)} skater(s) not in the bios report yet; "
+              f"named from the play-by-play roster")
 
-    if not any(run.rows for run in runs):
-        print("No usable data for any team; refusing to publish an empty page.",
-              file=sys.stderr)
+    reused_ids = {gid for gid in season.games if gid not in set(run.computed)}
+    diagnostics = carried_diagnostics(previous, reused_ids, run.diagnostics)
+    season.checks = {
+        "games_included": len(season.games),
+        "games_quarantined": len(season.excluded),
+        "diagnostics": diagnostics,
+    }
+
+    print(f"  games: {len(season.games)} included, {len(season.excluded)} quarantined, "
+          f"{run.reused} reused from the season file, {len(run.computed)} computed, "
+          f"{run.pending_games} not yet played")
+    print(f"  network: {fetcher.api_calls} request(s) ({fetcher.game_calls} for game "
+          f"payloads), {fetcher.cache_hits} cache hit(s)")
+    for item in season.excluded:
+        print(f"    quarantined {item.game_id} {item.date} {item.away}@{item.home}: "
+              f"{item.reason}")
+    for line in run.fallbacks:
+        print(f"    HTML fallback after failed verification -- {line}")
+    if run.recovered:
+        print(f"  recovered from quarantine: {', '.join(map(str, run.recovered))}")
+    for key, entries in sorted(diagnostics.items()):
+        print(f"  diagnostic (non-blocking) {key}: {len(entries)}")
+
+    # -- 2. serialise, read back, verify what will ship --------------------
+    season_text = store.dumps_compact(store.season_to_json(season))
+    shipped = store.season_from_json(json.loads(season_text))
+    verdict = checks.verify_season(shipped, run.standings_games)
+    print("\nSeason checks (on the serialised file, read back):")
+    for line in verdict.lines:
+        print(f"  {line}")
+    if not verdict.ok:
+        for line in verdict.blocking:
+            print(f"  BLOCKING: {line}", file=sys.stderr)
+        print("\nPUBLISH BLOCKED. The published site is unchanged.", file=sys.stderr)
+        _github_output(published="false", fetched=fetcher.game_calls)
         return 1
+    print("  all season checks passed")
 
-    # -- 2. publish gate --------------------------------------------------
-    if args.skip_verify:
-        print("\nVERIFY SKIPPED (--skip-verify)")
-    else:
-        print("\nVerifying before publish...")
-        failures = []
-        for team in teams:
-            ok, log = run_verify(team, args.season, args.cache_dir)
-            tail = [line for line in log.strip().splitlines() if line.strip()][-6:]
-            print(f"  [{team}] {'PASS' if ok else 'FAIL'}")
-            for line in tail:
-                print(f"    {line}")
-            if not ok:
-                failures.append(team)
-        if failures:
-            print(f"\nPUBLISH BLOCKED: verification failed for {', '.join(failures)}.",
-                  file=sys.stderr)
-            print("The previously published page is unchanged.", file=sys.stderr)
-            return 1
-        print("  all checks passed")
-
-    # -- 3. publish -------------------------------------------------------
-    page = site.render_page(SiteData(runs=runs, generated_at_utc=started))
+    players_text = store.dumps_compact(store.players_to_json(
+        {pid: players[pid] for pid in players}))
+    page = site.render_page(site.SiteData(season=shipped, generated_at_utc=started))
 
     if args.dry_run:
-        print(f"\nDRY RUN: page would be {len(page):,} bytes; nothing written.")
+        print(f"\nDRY RUN: season file {len(season_text):,} bytes, players "
+              f"{len(players_text):,} bytes, page {len(page):,} bytes; nothing written.")
         return 0
 
-    docs_dir.mkdir(parents=True, exist_ok=True)
-    index = docs_dir / "index.html"
-    index.write_text(page, encoding="utf-8")
-    # Keeps GitHub Pages from running the output through Jekyll.
+    # -- 3. publish -------------------------------------------------------
+    data_dir = store.data_dir(docs_dir)
+    data_dir.mkdir(parents=True, exist_ok=True)
+    store.season_path(docs_dir, args.season).write_text(season_text, encoding="utf-8")
+    (data_dir / "players.json").write_text(players_text, encoding="utf-8")
+    manifest = store.manifest_to_json(docs_dir, shipped)
+    (data_dir / "index.json").write_text(store.dumps_compact(manifest), encoding="utf-8")
+    (docs_dir / "index.html").write_text(page, encoding="utf-8")
     (docs_dir / ".nojekyll").write_text("", encoding="utf-8")
 
-    written = [index]
-    for run in runs:
-        if not run.rows:
-            continue
-        name = (config.PRIMARY_CSV_NAME if run.team == "CHI"
-                else f"{run.team.lower()}_adjusted_pm.csv")
-        csv_path = output.write_csv(run.rows, ROOT / name)
-        shutil.copyfile(csv_path, docs_dir / name)
-        written.extend([csv_path, docs_dir / name])
+    # The Blackhawks CSV keeps its old address, now computed the new way.
+    hawks = aggregate.aggregate([r for r in shipped.rows if r.team == config.DEFAULT_PAGE_TEAM],
+                                players)
+    csv_path = output.write_csv(hawks, ROOT / config.PRIMARY_CSV_NAME)
+    shutil.copyfile(csv_path, docs_dir / config.PRIMARY_CSV_NAME)
 
-    print(f"\nPublished {index} ({len(page):,} bytes)")
-    for path in written[1:]:
-        print(f"  also wrote {path}")
+    print(f"\nPublished {store.season_path(docs_dir, args.season)} "
+          f"({len(season_text):,} bytes), players.json ({len(players_text):,} bytes), "
+          f"index.html ({len(page):,} bytes)")
+    _github_output(published="true", fetched=fetcher.game_calls)
     return 0
 
 
