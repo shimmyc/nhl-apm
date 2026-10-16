@@ -59,7 +59,7 @@ jobs:
         id: update
         # Per-game failures are quarantined and listed on the page. The step
         # fails -- leaving docs/ exactly as published -- only for systemic
-        # problems: >2% of games failing or a league-level identity breaking.
+        # problems: more than max(5, 2%) of games failing or a league-level identity breaking.
         run: python update.py --quiet ${{ inputs.rebuild && '--rebuild' || '' }}
 
       - name: Save raw API cache

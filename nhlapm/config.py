@@ -56,9 +56,17 @@ DEFAULT_PAGE_TEAM = "CHI"       # the team the CLI defaults to
 
 # -- league-scale publish gate ----------------------------------------------
 # A game that fails verification is quarantined, not fatal. Publishing is
-# blocked only for systemic trouble: more than this share of completed games
-# failing, or a league-level identity breaking.
+# blocked only for systemic trouble: more quarantined games than
+# max(MAX_QUARANTINE_GAMES, MAX_QUARANTINE_SHARE x completed games), or a
+# league-level identity breaking. The floor keeps a handful of bad games early
+# in a season (when 2% is one or two games) from blocking the site.
 MAX_QUARANTINE_SHARE = 0.02
+MAX_QUARANTINE_GAMES = 5
+
+
+def quarantine_limit(completed: int) -> int:
+    """Most quarantined games a season may have and still publish."""
+    return max(MAX_QUARANTINE_GAMES, int(MAX_QUARANTINE_SHARE * completed))
 # Float tolerance for the zero-sum identities (they are exact in integers;
 # only the Expected division introduces rounding).
 ZERO_SUM_TOLERANCE = 1e-6

@@ -112,7 +112,7 @@ def main(argv: list[str] | None = None) -> int:
           f"(tolerance {checks.TOLERANCE_SECONDS}s)")
     if args.strict:
         return 0 if not failed else 1
-    return 0 if share <= config.MAX_QUARANTINE_SHARE else 1
+    return 0 if len(failed) <= config.quarantine_limit(len(games)) else 1
 
 
 if __name__ == "__main__":

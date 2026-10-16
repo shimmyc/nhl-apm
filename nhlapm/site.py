@@ -7,9 +7,10 @@ download, then every filter is a re-sum in memory: no request per click.
 
 Design notes worth keeping:
 
-* `Adjusted` is a polarity encoding, so it gets a diverging treatment: a signed
+* `Rel` is the headline stat: it sits beside the name, is the default sort,
+  and is the polarity encoding that gets a diverging treatment -- a signed
   numeral in primary ink plus a bar that grows right for positive and left for
-  negative from a centre tick.
+  negative from a centre tick. Adjusted stays as a secondary column.
 * The green/red pair is the hockey convention and is what ships, but it
   measures deutan Delta E 4.1 -- below the usable floor -- so hue is never the
   only cue. The sign on the numeral and the bar's direction both carry
@@ -19,6 +20,9 @@ Design notes worth keeping:
 * Dark mode is its own set of steps against the dark surface, not an inversion,
   and the Adjusted washes are opaque because a sticky cell must not be
   see-through while columns scroll underneath it.
+* Min TOI has no fixed default: it follows the view (0 for one team, 50
+  otherwise) until the reader types a value, and only a typed value goes in
+  the URL.
 * ~1,000 skaters on a phone: rows render as one string into innerHTML, capped
   at 100 until "Show all" is pressed, and the name search is debounced.
 """
@@ -33,7 +37,8 @@ from datetime import datetime, timedelta, timezone
 from . import config
 from .store import Season, season_label
 
-DEFAULT_MIN_TOI = 50
+DEFAULT_MIN_TOI = 50        # league / conference / division views
+DEFAULT_MIN_TOI_TEAM = 0    # one team: show the whole roster
 
 LEGEND = [
     ("Scope", "League, a conference, a division or one team. A skater traded "
@@ -41,6 +46,12 @@ LEGEND = [
               "as a separate row for each club when you pick that club."),
     ("Games", "Season to date, each skater's last 5, 10 or 20 games within the "
               "other filters, or a custom date range."),
+    ("Rel", "5v5 goal differential vs. how his team does when he's on the bench, "
+            "scaled to his minutes. The headline number and the default sort: "
+            "Rel = GD_on - GD_off x (TOI_on / TOI_off), with the off-ice figures "
+            "taken from the same games he played."),
+    ("Min TOI", "Hides skaters below this many 5-on-5 minutes. It defaults to 0 when "
+                "one team is picked, so the whole roster shows, and to 50 otherwise."),
     ("TOI_5v5", "Minutes on the ice at 5-on-5 with both goalies in net. Power "
                 "plays, 4-on-4, 3-on-3 overtime and empty-net time are all excluded."),
     ("Official_PM", "The plus-minus the NHL publishes, over the same games. It "
@@ -56,8 +67,6 @@ LEGEND = [
     ("Adjusted", "GD_on minus Expected: how the team did with this skater on the "
                  "ice compared with how it did overall in the same games. Every "
                  "team's Adjusted sums to zero in every game."),
-    ("Rel", "On-ice differential compared with the same team's differential while "
-            "the skater was on the bench in those games, scaled by the minutes split."),
     ("GD_on/60", "GD_on per 60 minutes of 5-on-5. Rates are jumpy on small samples, "
                  "which is what the minimum-TOI filter is for."),
     ("Per 60", "Switches GD_on, Expected, Adjusted and Rel to rates per 60 minutes "
@@ -114,6 +123,7 @@ def render_page(data: SiteData) -> str:
         "__POS__": config.ACCENT_POSITIVE,
         "__NEG__": config.ACCENT_NEGATIVE,
         "__DEFAULT_MIN__": json.dumps(DEFAULT_MIN_TOI),
+        "__DEFAULT_MIN_TEAM__": json.dumps(DEFAULT_MIN_TOI_TEAM),
         "__DEFAULT_TEAM__": json.dumps(config.DEFAULT_PAGE_TEAM),
     }
     page = TEMPLATE
@@ -233,7 +243,7 @@ thead th:first-child { z-index: 4; }
 tbody tr:nth-child(even) th, tbody tr:nth-child(even) td { background: var(--page); }
 td.tm { color: var(--ink-2); }
 .abbr { display: none; }
-td.adj { min-width: 92px; }
+td.hl { min-width: 92px; }
 .adjnum { display: block; font-weight: 650; }
 .bar { position: relative; display: block; height: 4px; margin: 3px 0 0 auto; width: 100%;
   max-width: 76px; background: var(--track); border-radius: 2px; }
@@ -242,8 +252,8 @@ td.adj { min-width: 92px; }
 .bar i { position: absolute; top: 0; height: 4px; border-radius: 2px; min-width: 2px; }
 .bar i.pos { left: 50%; background: var(--pos); }
 .bar i.neg { right: 50%; background: var(--neg); }
-tbody tr td.adj.p { background: var(--pos-wash); }
-tbody tr td.adj.n { background: var(--neg-wash); }
+tbody tr td.hl.p { background: var(--pos-wash); }
+tbody tr td.hl.n { background: var(--neg-wash); }
 .state { padding: 22px 14px; color: var(--ink-3); font-size: .86rem; }
 .more { display: block; margin: 10px auto 0; font: inherit; font-size: .84rem; cursor: pointer;
   color: var(--ink); background: var(--surface); border: 1px solid var(--rule-2);
@@ -258,12 +268,8 @@ tbody tr td.adj.n { background: var(--neg-wash); }
   th, td { padding: 6px 7px; }
   thead th button { padding: 8px 7px; font-size: .64rem; }
   th.player { max-width: 118px; overflow: hidden; text-overflow: ellipsis; }
-  td.adj { min-width: 72px; }
+  td.hl { min-width: 72px; }
   .bar { max-width: 54px; }
-  /* Player pinned left, Adjusted pinned right. */
-  td.adj, thead th.adjh { position: sticky; right: 0; z-index: 2;
-    border-left: 1px solid var(--rule-2); }
-  thead th.adjh { z-index: 4; background: var(--surface); }
   .tval { font-size: 1.3rem; }
 }
 .prov { color: var(--ink-3); font-size: .76rem; margin: 10px 2px 0; }
@@ -345,7 +351,7 @@ footer a, .prov a { color: var(--ink-2); }
 </table>
 </div>
 <button type="button" class="more" id="more" hidden></button>
-<p class="hint">Player and Adjusted stay pinned. Swipe the table sideways for the columns in between.</p>
+<p class="hint">Player stays pinned, with Rel beside it. Swipe the table sideways for the other columns.</p>
 <p class="prov" id="prov"></p>
 <div id="excluded"></div>
 
@@ -368,10 +374,11 @@ footer a, .prov a { color: var(--ink-2); }
 <script>
 (function () {
 "use strict";
-var DEFAULT_MIN = __DEFAULT_MIN__;
+var DEFAULT_MIN = __DEFAULT_MIN__, DEFAULT_MIN_TEAM = __DEFAULT_MIN_TEAM__;
 var PAGE_ROWS = 100;
 var COLS = [
   {k: "name", h: "Player", a: "Player", t: "txt"},
+  {k: "rel", h: "Rel", a: "Rel", t: "num", d: 2, s: 1, rate: 1, hl: 1, tip: "5v5 goal differential vs. the team with the skater on the bench, scaled to his minutes"},
   {k: "team", h: "Team", a: "Team", t: "txt"},
   {k: "pos", h: "Pos", a: "Pos", t: "txt"},
   {k: "gp", h: "GP", a: "GP", t: "num", d: 0, tip: "Games in this selection"},
@@ -381,9 +388,9 @@ var COLS = [
   {k: "nc", h: "NonClean", a: "NonCln", t: "num", d: 0, s: 1, tip: "Official minus 5v5"},
   {k: "exp", h: "Expected", a: "Exp", t: "num", d: 2, s: 1, rate: 1, tip: "Team GD in each game x share of that game's 5v5 minutes"},
   {k: "adj", h: "Adjusted", a: "Adj", t: "num", d: 2, s: 1, rate: 1, tip: "GD_on minus Expected"},
-  {k: "rel", h: "Rel", a: "Rel", t: "num", d: 2, s: 1, rate: 1, tip: "On-ice vs the same team with the skater off"},
   {k: "gd60", h: "GD_on/60", a: "GD/60", t: "num", d: 2, s: 1, tip: "GD_on per 60 minutes of 5v5"}
 ];
+var HEAD = COLS.filter(function (c) { return c.hl; })[0];
 var POS_LABEL = {C: "C", L: "LW", R: "RW", D: "D"};
 var $ = function (id) { return document.getElementById(id); };
 
@@ -392,9 +399,12 @@ var S = defaults();
 var result = [], showAll = false;
 
 function defaults() {
-  return {season: "", scope: "", pos: "", games: "", from: "", to: "", min: DEFAULT_MIN,
-          venue: "", rookies: false, q: "", per60: false, sort: "adj", dir: "desc"};
+  // min: null = follow the view's default (minDefault); a number = the reader's.
+  return {season: "", scope: "", pos: "", games: "", from: "", to: "", min: null,
+          venue: "", rookies: false, q: "", per60: false, sort: HEAD.k, dir: "desc"};
 }
+function minDefault() { return S.scope && S.scope[0] === "t" ? DEFAULT_MIN_TEAM : DEFAULT_MIN; }
+function minToi() { return S.min === null ? minDefault() : S.min; }
 
 function esc(s) {
   return String(s).replace(/[&<>"]/g, function (c) {
@@ -434,13 +444,13 @@ function writeUrl() {
   if (S.pos) p.set("pos", S.pos);
   if (S.games === "custom") { if (S.from) p.set("from", S.from); if (S.to) p.set("to", S.to); }
   else if (S.games) p.set("games", S.games);
-  if (S.min !== DEFAULT_MIN) p.set("min", String(S.min));
+  if (S.min !== null) p.set("min", String(S.min));
   if (S.venue) p.set("venue", S.venue);
   if (S.rookies) p.set("rookies", "1");
   if (S.q) p.set("q", S.q);
   if (S.per60) p.set("per60", "1");
-  if (S.sort !== "adj") p.set("sort", S.sort);
-  if (S.dir !== "desc" || S.sort !== "adj") p.set("dir", S.dir);
+  if (S.sort !== HEAD.k) p.set("sort", S.sort);
+  if (S.dir !== "desc" || S.sort !== HEAD.k) p.set("dir", S.dir);
   var qs = p.toString();
   history.replaceState(null, "", qs ? "?" + qs : location.pathname);
 }
@@ -518,7 +528,7 @@ function compute() {
   var win = gameWindow(), lo = win[0], hi = win[1];
   var lastN = (S.games && S.games !== "custom") ? parseInt(S.games, 10) : 0;
   var teamOk = teamFilter(), venue = S.venue, q = fold(S.q.trim());
-  var minSec = (S.min || 0) * 60, G = D.games;
+  var minSec = minToi() * 60, G = D.games;
   var out = [], i, j;
   for (i = 0; i < D.players.length; i++) {
     var p = D.players[i];
@@ -558,7 +568,7 @@ function value(row, col) {
   return v;
 }
 function sortRows(rows) {
-  var col = COLS.filter(function (c) { return c.k === S.sort; })[0] || COLS[9];
+  var col = COLS.filter(function (c) { return c.k === S.sort; })[0] || HEAD;
   var desc = S.dir === "desc";
   rows.sort(function (a, b) {
     var x = value(a, col), y = value(b, col);
@@ -583,7 +593,7 @@ function renderHead() {
   var cells = visibleCols().map(function (c) {
     var rate = S.per60 && c.rate;
     var sort = c.k === S.sort ? (S.dir === "desc" ? "descending" : "ascending") : "none";
-    var cls = (c.t === "num" ? "num" : "txt") + (c.k === "adj" ? " adjh" : "");
+    var cls = c.t === "num" ? "num" : "txt";
     return '<th scope="col" class="' + cls + '" aria-sort="' + sort + '" data-k="' + c.k + '"' +
       (c.tip ? ' title="' + esc(c.tip) + '"' : "") + '><button type="button">' +
       '<span class="full">' + esc(c.h + (rate ? "/60" : "")) + '</span><span class="abbr">' +
@@ -592,7 +602,7 @@ function renderHead() {
   $("head").innerHTML = cells.join("");
 }
 function renderBody() {
-  var cols = visibleCols(), adjCol = COLS[9];
+  var cols = visibleCols();
   if (!result.length) {
     $("body").innerHTML = '<tr><td class="state" colspan="' + cols.length +
       '">No skaters match these filters. Try lowering the minimum TOI.</td></tr>';
@@ -600,7 +610,7 @@ function renderBody() {
     return;
   }
   var peak = 0;
-  result.forEach(function (r) { var v = value(r, adjCol); if (v !== null) peak = Math.max(peak, Math.abs(v)); });
+  result.forEach(function (r) { var v = value(r, HEAD); if (v !== null) peak = Math.max(peak, Math.abs(v)); });
   peak = peak || 1;
   var n = showAll ? result.length : Math.min(PAGE_ROWS, result.length), html = [];
   for (var i = 0; i < n; i++) {
@@ -608,12 +618,12 @@ function renderBody() {
     for (var c = 0; c < cols.length; c++) {
       var col = cols[c], rate = S.per60 && col.rate, v = value(row, col), text = fmt(v, col, rate);
       if (col.k === "name") cells.push('<th scope="row" class="txt player">' + text + "</th>");
-      else if (col.k === "adj") {
+      else if (col.hl) {
         var shown = v === null ? 0 : Number(v.toFixed(2));
         var wash = shown === 0 ? "z" : (shown > 0 ? "p" : "n");
         var w = Math.min(100, Math.abs(v || 0) / peak * 100) / 2;
         var bar = shown === 0 ? "" : '<i class="' + (shown > 0 ? "pos" : "neg") + '" style="width:' + w.toFixed(1) + '%"></i>';
-        cells.push('<td class="num adj ' + wash + '"><span class="adjnum">' + text +
+        cells.push('<td class="num hl ' + wash + '"><span class="adjnum">' + text +
                    '</span><span class="bar" aria-hidden="true">' + bar + "</span></td>");
       } else cells.push('<td class="' + (col.t === "num" ? "num" : "txt") + (col.k === "team" ? " tm" : "") + '">' + text + "</td>");
     }
@@ -687,7 +697,7 @@ function activeSummary() {
   else if (S.games) bits.push("last " + S.games);
   if (S.venue) bits.push(S.venue);
   if (S.rookies) bits.push("rookies");
-  bits.push("≥" + S.min + " min");
+  bits.push("≥" + minToi() + " min");
   if (S.per60) bits.push("per 60");
   if (S.q) bits.push("“" + S.q + "”");
   $("activeSummary").textContent = bits.join(" · ");
@@ -724,7 +734,7 @@ function syncControls() {
   var first = D.games.length ? D.games[0].date : "", last = D.games.length ? D.games[D.games.length - 1].date : "";
   ["from", "to"].forEach(function (id) { $(id).min = first; $(id).max = last; });
   $("from").value = S.from; $("to").value = S.to;
-  $("min").value = S.min; $("rookies").checked = S.rookies; $("q").value = S.q;
+  $("min").value = minToi(); $("rookies").checked = S.rookies; $("q").value = S.q;
   setSeg("venue", S.venue); setSeg("mode", S.per60 ? "60" : "");
   var ss = $("season");
   if (MANIFEST.seasons.length > 1) {
@@ -743,7 +753,11 @@ function setSeg(id, v) {
 }
 function on(id, ev, fn) { $(id).addEventListener(ev, fn); }
 function wire() {
-  on("scope", "change", function () { S.scope = this.value; showAll = false; refresh(); });
+  on("scope", "change", function () {
+    S.scope = this.value; showAll = false;
+    if (S.min === null) $("min").value = minDefault();
+    refresh();
+  });
   on("pos", "change", function () { S.pos = this.value; showAll = false; refresh(); });
   on("games", "change", function () {
     S.games = this.value; $("dateWrap").hidden = S.games !== "custom";
@@ -752,7 +766,11 @@ function wire() {
   });
   on("from", "change", function () { S.from = this.value; refresh(); });
   on("to", "change", function () { S.to = this.value; refresh(); });
-  on("min", "input", function () { var v = parseFloat(this.value); S.min = isNaN(v) ? 0 : Math.max(0, v); refresh(); });
+  on("min", "input", function () {
+    var v = parseFloat(this.value);
+    S.min = isNaN(v) ? null : Math.max(0, v);
+    refresh();
+  });
   on("rookies", "change", function () { S.rookies = this.checked; refresh(); });
   var timer = null;
   on("q", "input", function () {
@@ -766,7 +784,7 @@ function wire() {
   $("mode").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     S.per60 = b.dataset.v === "60"; setSeg("mode", b.dataset.v);
-    if (!S.per60 && S.sort === "gd60") S.sort = "adj";
+    if (!S.per60 && S.sort === "gd60") S.sort = HEAD.k;
     refresh();
   });
   $("head").addEventListener("click", function (e) {

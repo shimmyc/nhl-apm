@@ -133,8 +133,9 @@ home, Central last 5): every skater matched.
 
 Filters: scope (league / conference / division / team), position (all,
 forwards, defense, C, LW, RW), games (season to date, each skater's last 5 /
-10 / 20 within the other filters, or custom dates), minimum 5v5 TOI (default
-50), home / away / both, rookies only, name search (accent-insensitive), and
+10 / 20 within the other filters, or custom dates), minimum 5v5 TOI (0 when
+one team is picked, 50 for league / conference / division views, until you
+type a value), home / away / both, rookies only, name search (accent-insensitive), and
 totals versus per-60. Per 60 turns GD_on, Expected, Adjusted and Rel into rates
 of 5v5 time; Official_PM and NonClean stay totals because they are not 5v5
 quantities.
@@ -152,9 +153,12 @@ render with data took about 0.4 s. Dropping the minimum TOI to 0 re-folded
 all 678 skaters and re-rendered in about 0.1 s. Rows render as one string into
 `innerHTML`, capped at 100 until "Show all", and the name search is debounced.
 
-`Adjusted` is a polarity encoding: a signed numeral in primary ink, a wash,
-and a bar that grows right for positive and left for negative from a centre
-tick. On a phone the Player column is pinned left and Adjusted right.
+`Rel` is the headline stat: it sits next to the player name, is the default
+sort, and carries the polarity encoding -- a signed numeral in primary ink, a
+wash, and a bar that grows right for positive and left for negative from a
+centre tick. Legend: "Rel = 5v5 goal differential vs. how his team does when
+he's on the bench, scaled to his minutes." Adjusted stays as a secondary
+column. On a phone the Player column is pinned left with Rel beside it.
 
 Green/red is the hockey convention and is what ships, but measured with the
 palette validator green `#0ca30c` against red `#d03b3b` separates by **deutan
@@ -183,7 +187,7 @@ and listed on the page under "games excluded", never fatal on its own.
 
 **Per season** -- these block publishing:
 
-- more than 2% of completed games quarantined;
+- more quarantined games than max(5, 2% of completed games);
 - any league-level identity broken *in the file as written and read back*:
   league TOI = 10 x clean time, league GD_on = 0, league Adjusted = 0,
   on-ice GF = GA = 5 x goals, every stored game's per-team identities, every
@@ -196,8 +200,11 @@ and published with it listed (2 of 107, 1.9%); corrupting two blocked publish
 (3 of 107, 2.8%) with every published file byte-identical; adding one phantom
 goal to one stored row tripped five separate season identities.
 
-Early in a season 2% is a small number of games: at 107 games, three failures
-block. That is the rule as specified.
+The five-game floor exists because early in a season 2% is one or two games:
+under a bare 2% rule, three failures at 107 games blocked the site. Now up to
+five quarantined games publish at any point, and the 2% share takes over once
+a season passes 250 games. (The gate test above predates the floor; at 107
+games it now takes six bad games to block.)
 
 ### What league scale found
 
@@ -307,8 +314,8 @@ skaters without holding a man advantage, so a goal it scores does earn plus.
 | `Official_PM` | The NHL's own +/-, all situations, over the same games |
 | `NonClean` | `Official_PM - GD_on`: empty nets, 4v4, shorthanded goals... |
 | `Expected` | Sum over games of team 5v5 GD x share of that game's 5v5 time |
-| `Adjusted` | `GD_on - Expected` -- the default sort |
-| `Rel` | `GD_on - GD_off x (TOI_on / TOI_off)` over the games played; blank with no off-ice time |
+| `Rel` | `GD_on - GD_off x (TOI_on / TOI_off)` over the games played; blank with no off-ice time -- the headline stat and default sort |
+| `Adjusted` | `GD_on - Expected` |
 | `GD_on/60` | Rate form of GD_on |
 
 `GP` counts games in the selection in which the skater took at least one shift.

@@ -22,7 +22,8 @@ Per game -- a failure quarantines that one game:
 
 Per season -- a failure blocks publishing:
 
-* more than config.MAX_QUARANTINE_SHARE of completed games quarantined;
+* more than max(5 games, 2% of completed games) quarantined
+  (config.quarantine_limit);
 * any league-level or per-team identity broken in the *stored* data, i.e.
   after the season file has been written and read back;
 * a team's included + quarantined games disagreeing with the standings
@@ -205,13 +206,14 @@ def verify_season(season, standings_games: dict[str, int] | None) -> SeasonVerdi
     completed = len(games) + len(excluded)
 
     share = len(excluded) / completed if completed else 0.0
+    limit = config.quarantine_limit(completed)
     verdict.lines.append(
         f"games included {len(games)}, quarantined {len(excluded)} "
-        f"({share:.1%} of {completed}; limit {config.MAX_QUARANTINE_SHARE:.0%})")
-    if share > config.MAX_QUARANTINE_SHARE:
+        f"({share:.1%} of {completed}; limit {limit} games)")
+    if len(excluded) > limit:
         verdict.blocking.append(
             f"{len(excluded)} of {completed} games quarantined ({share:.1%}) -- "
-            f"above the {config.MAX_QUARANTINE_SHARE:.0%} systemic limit")
+            f"above the systemic limit of {limit}")
     if not games:
         verdict.blocking.append("no games included")
         return verdict
