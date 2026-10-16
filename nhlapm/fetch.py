@@ -3,10 +3,16 @@
 Every response is cached verbatim under the cache directory so reruns cost no
 API calls. Only successful, parseable responses are cached -- a transport
 failure must not be frozen into the cache as if it were data.
+
+New entries are written gzipped (`key.json.gz`, `key.htm.gz`): a game's raw
+payloads shrink roughly tenfold, which is what makes a 19-season local cache
+practical. Plain entries written before that are still read, so an existing
+cache stays valid; a cache file is never rewritten just to compress it.
 """
 
 from __future__ import annotations
 
+import gzip
 import json
 import time
 import urllib.error
@@ -46,7 +52,25 @@ class Fetcher:
     # -- plumbing ---------------------------------------------------------
 
     def _cache_path(self, key: str, ext: str = "json") -> Path:
-        return self.cache_dir / f"{key}.{ext}"
+        """Where an entry is written: always the gzipped name."""
+        return self.cache_dir / f"{key}.{ext}.gz"
+
+    def _cached(self, key: str, ext: str = "json") -> Path | None:
+        """The existing entry for a key, gzipped or legacy plain, else None."""
+        for path in (self.cache_dir / f"{key}.{ext}.gz", self.cache_dir / f"{key}.{ext}"):
+            if path.exists():
+                return path
+        return None
+
+    @staticmethod
+    def _read(path: Path) -> bytes:
+        data = path.read_bytes()
+        return gzip.decompress(data) if path.suffix == ".gz" else data
+
+    def _write(self, key: str, ext: str, body: bytes) -> None:
+        self._cache_path(key, ext).write_bytes(gzip.compress(body, compresslevel=6))
+        legacy = self.cache_dir / f"{key}.{ext}"
+        legacy.unlink(missing_ok=True)   # never leave two disagreeing copies
 
     def _log(self, message: str) -> None:
         if self.verbose:
@@ -83,28 +107,32 @@ class Fetcher:
 
     def get(self, url: str, key: str, allow_cache: bool = True) -> dict:
         """Fetch JSON."""
-        path = self._cache_path(key)
-        if allow_cache and not self.refresh and path.exists():
+        path = self._cached(key)
+        if allow_cache and not self.refresh and path is not None:
             try:
-                payload = json.loads(path.read_text(encoding="utf-8"))
+                payload = json.loads(self._read(path).decode("utf-8"))
                 self.cache_hits += 1
                 return payload
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, OSError, EOFError, UnicodeDecodeError):
                 self._log(f"  cache corrupt, refetching: {path.name}")
 
         body = self._download(url, validate_json=True)
-        path.write_bytes(body)
+        self._write(key, "json", body)
         return json.loads(body.decode("utf-8"))
 
     def get_text(self, url: str, key: str, ext: str = "htm") -> str:
         """Fetch a text document, cached verbatim as bytes."""
-        path = self._cache_path(key, ext)
-        if not self.refresh and path.exists():
-            self.cache_hits += 1
-            return path.read_bytes().decode(HTML_ENCODING, errors="replace")
+        path = self._cached(key, ext)
+        if not self.refresh and path is not None:
+            try:
+                body = self._read(path)
+                self.cache_hits += 1
+                return body.decode(HTML_ENCODING, errors="replace")
+            except (OSError, EOFError):
+                self._log(f"  cache corrupt, refetching: {path.name}")
 
         body = self._download(url, validate_json=False)
-        path.write_bytes(body)
+        self._write(key, ext, body)
         return body.decode(HTML_ENCODING, errors="replace")
 
     # -- endpoints --------------------------------------------------------
@@ -167,45 +195,67 @@ class Fetcher:
         return self.get(f"{config.BASE_API_WEB}/standings/now",
                         "standings_now", allow_cache=False)
 
-    def skater_bios(self, season: str) -> dict:
+    def standings_on(self, date: str) -> dict:
+        """Standings as of a past date: that season's clubs, conferences, divisions.
+
+        Cached: standings for a date that has passed do not change.
+        """
+        return self.get(f"{config.BASE_API_WEB}/standings/{date}", f"standings_{date}")
+
+    # The season-level reports below change while a season runs, so the
+    # current season refetches them (fresh=True); a finished season's are
+    # cached like any other raw response.
+
+    def skater_bios(self, season: str, fresh: bool = True) -> dict:
         """Every skater who has played this season: position, shoots, birthdate."""
         url = (f"{config.BASE_API_STATS}/skater/bios?limit=-1&cayenneExp="
                f"seasonId={season}%20and%20gameTypeId={config.GAME_TYPE_REGULAR}")
-        return self.get(url, f"skater_bios_{season}", allow_cache=False)
+        return self.get(url, f"skater_bios_{season}", allow_cache=not fresh)
 
-    def rookies(self, season: str) -> dict:
+    def rookies(self, season: str, fresh: bool = True) -> dict:
         """Skaters the NHL classifies as rookies this season (its own definition)."""
         url = (f"{config.BASE_API_STATS}/skater/summary?limit=-1&cayenneExp="
                f"seasonId={season}%20and%20gameTypeId={config.GAME_TYPE_REGULAR}"
                f"%20and%20isRookie=%221%22")
-        return self.get(url, f"rookies_{season}", allow_cache=False)
+        return self.get(url, f"rookies_{season}", allow_cache=not fresh)
+
+    def skater_season_summary(self, season: str, fresh: bool = True) -> dict:
+        """The NHL's season totals per skater (one row per player, all clubs
+        combined) -- the independent source for the season +/- check."""
+        url = (f"{config.BASE_API_STATS}/skater/summary?limit=-1&cayenneExp="
+               f"seasonId={season}%20and%20gameTypeId={config.GAME_TYPE_REGULAR}")
+        return self.get(url, f"skater_summary_{season}", allow_cache=not fresh)
 
     def game_payloads_cached(self, game_id: int) -> bool:
-        return all(self._cache_path(f"{kind}_{game_id}").exists()
+        return all(self._cached(f"{kind}_{game_id}") is not None
                    for kind in ("pbp", "shifts", "boxscore"))
 
     def drop_game_cache(self, game_id: int) -> None:
         """Forget every cached payload for one game so it is refetched fresh."""
         for key in (f"pbp_{game_id}", f"shifts_{game_id}", f"boxscore_{game_id}"):
-            self._cache_path(key).unlink(missing_ok=True)
+            self._drop(key, "json")
         for side in ("TV", "TH"):
-            self._cache_path(f"toi_{side}_{game_id}", "htm").unlink(missing_ok=True)
+            self._drop(f"toi_{side}_{game_id}", "htm")
+
+    def _drop(self, key: str, ext: str) -> None:
+        while (path := self._cached(key, ext)) is not None:
+            path.unlink()
 
     # -- cache maintenance ------------------------------------------------
 
     def shift_cache_is_empty(self, game_id: int) -> bool:
         """True when a cached shift response exists but holds no rows."""
-        path = self._cache_path(f"shifts_{game_id}")
-        if not path.exists():
+        path = self._cached(f"shifts_{game_id}")
+        if path is None:
             return False
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
+            payload = json.loads(self._read(path).decode("utf-8"))
+        except (json.JSONDecodeError, OSError, EOFError):
             return True
         return not payload.get("data")
 
     def drop_shift_cache(self, game_id: int) -> None:
-        self._cache_path(f"shifts_{game_id}").unlink(missing_ok=True)
+        self._drop(f"shifts_{game_id}", "json")
 
 
 def _week_settled(payload: dict) -> bool:

@@ -298,3 +298,44 @@ def _as_record(game, rows) -> GameRecord:
                         home_gf=game.home_gf, away_gf=game.away_gf, source=game.source)
     record.rows = list(rows)
     return record
+
+
+# -- season +/- against the NHL's season report ------------------------------
+
+@dataclass
+class SeasonPmCheck:
+    players_checked: int = 0
+    mismatches: list[str] = field(default_factory=list)
+
+    @property
+    def share(self) -> float:
+        return len(self.mismatches) / self.players_checked if self.players_checked else 0.0
+
+
+def season_plus_minus(season, summary: dict, quarantined_pm: dict[int, int],
+                      names: dict[int, str] | None = None) -> SeasonPmCheck:
+    """Each skater's summed per-game Official_PM vs the NHL's season +/-.
+
+    `summary` is the stats API skater/summary report for the season: one row
+    per player with every club combined, a feed this pipeline never computes
+    from. Our side is the per-game boxscore +/- over included games plus, for
+    quarantined games, the same boxscore +/- (`quarantined_pm`) -- a game
+    excluded from the 5v5 numbers still happened, and the NHL counted it.
+    """
+    names = names or {}
+    ours: dict[int, int] = dict(quarantined_pm)
+    for r in season.rows:
+        ours[r.player_id] = ours.get(r.player_id, 0) + r.official_pm
+    theirs = {row["playerId"]: (row.get("plusMinus") or 0, row.get("skaterFullName", ""))
+              for row in summary.get("data", [])}
+    result = SeasonPmCheck()
+    for pid in sorted(set(ours) | set(theirs)):
+        mine = ours.get(pid, 0)
+        nhl, name = theirs.get(pid, (0, names.get(pid, str(pid))))
+        if pid not in ours and nhl == 0:
+            continue    # listed by the NHL, never on the ice at 5v5 or in a box: nothing to compare
+        result.players_checked += 1
+        if mine != nhl:
+            where = "" if pid in theirs else " (not in the NHL report)"
+            result.mismatches.append(f"{name or pid} ours {mine:+d} vs NHL {nhl:+d}{where}")
+    return result

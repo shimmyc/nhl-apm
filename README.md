@@ -24,8 +24,9 @@ Stdlib only. Python 3.9+ (uses `X | None` annotations under
 
 | Module | Responsibility |
 | --- | --- |
-| `nhlapm/config.py` | Season, period grid, the verified 5v5 situation code, gate thresholds |
-| `nhlapm/fetch.py` | HTTP + verbatim disk cache under `cache/`, ~1 request/sec, retry |
+| `nhlapm/config.py` | Period grid, the verified 5v5 situation code, gate thresholds |
+| `nhlapm/seasons.py` | Which season is current, and any season's dates and game count, from the NHL |
+| `nhlapm/fetch.py` | HTTP + verbatim gzipped disk cache under `cache/`, ~1 request/sec, retry |
 | `nhlapm/parse.py` | Payloads -> typed records; all times to absolute game seconds |
 | `nhlapm/html_toi.py` | Second shift source: the HTML Time On Ice reports |
 | `nhlapm/loader.py` | Picks the shift source for a game; the one place that decides |
@@ -35,9 +36,11 @@ Stdlib only. Python 3.9+ (uses `X | None` annotations under
 | `nhlapm/pipeline.py` | League discovery, per-game compute + verify + quarantine, metadata |
 | `nhlapm/store.py` | Season file / players.json / manifest, compact on disk |
 | `nhlapm/aggregate.py` | Folds player-game rows into one line per skater (the page's twin) |
-| `nhlapm/site.py` | Renders `docs/index.html`, the client-side page |
+| `nhlapm/careers.py` | `player_seasons.json`: one row per player-season-club, for ranges and careers |
+| `nhlapm/site.py` | Renders `docs/index.html` and `docs/player.html`, the client-side pages |
 | `nhlapm/stats.py`, `output.py` | Goal-eligibility rules; CSV and console table |
 | `update.py` / `main.py` / `verify.py` | Daily job / terminal reports / independent checks |
+| `backfill.py` | Past seasons, standalone and restartable |
 
 ## Data model: one row per skater per game
 
@@ -102,16 +105,19 @@ the file cannot disagree with the definition.
 
 ## Storage
 
-The raw API cache is **not committed** (it runs ~0.5 MB a game, ~650 MB a
-season). It lives in the GitHub Actions cache; `cache/` is gitignored.
+The raw API cache is **not committed**. New entries are written gzipped
+(about 33 KB a game); the current season's lives in the GitHub Actions cache,
+past seasons' under `cache/history/` on the machine that ran the backfill.
+`cache/` is gitignored.
 
 Committed, under `docs/data/`:
 
 | File | Contents |
 | --- | --- |
-| `index.json` | Manifest: seasons available, default season, players file |
-| `20262027.json` | One season: teams, games, player-game rows, rookies, exclusions |
+| `index.json` | Manifest: seasons available, default (newest) season, players and careers files |
+| `{season}.json` | One season: teams, games, player-game rows, rookies, exclusions |
 | `players.json` | Player id -> name, position, shoots, birthdate (season-independent) |
+| `player_seasons.json` | One row per player-season-club stint, every column a total (`nhlapm/careers.py`) |
 
 Season files are arrays, not objects, with each table's column order declared
 once in a `cols` list beside it -- the file documents itself without repeating
@@ -119,11 +125,91 @@ keys 50,000 times. At 106 games the season file is 104 KB (28 KB gzipped); a
 full 1,312-game season projects to about 1.3 MB (~350 KB gzipped), well under
 the 3 MB budget.
 
-**Growing it later.** A past season is one more `{season}.json` plus a manifest
-entry; the page's season picker appears as soon as there are two. A custom date
-range is a filter over rows that already carry dates. A player career page is a
-fold over the season files keyed by player id, which is why identity lives in
-`players.json` and season facts (team, rookie status) live in the season file.
+`player_seasons.json` exists so a season range or a career never makes a phone
+download 19 game-level files. Each row is one skater, one season, one club:
+GP, TOI, GF/GA on, Official_PM, Expected (in ten-thousandths of a goal, the
+only non-integer), and the off-ice TOI and goal differential that Rel needs.
+Both writers -- the daily job (current season) and the backfill (past
+seasons) -- replace only their own season's slice and fold in any season file
+on disk the payload lacks. A test merging three seasons one at a time came out
+identical to a full rebuild from the season files.
+
+**Rel for multi-club rows.** A traded skater's season, a season range and a
+career all compute Rel per club per season and add the pieces up -- never one
+ratio over bench minutes pooled from different clubs. The single-season page
+follows the same rule for a combined "CHI/NYR" row. (Two skaters were traded
+in 2026-27 so far; their combined-row Rel changed when this rule came in. No
+other number did.)
+
+## History: 2007-08 to 2025-26
+
+`backfill.py` processes past regular seasons, one season file each, with the
+same per-game verification and quarantine rules as the current season. It is
+standalone and restartable, caches every raw response gzipped under
+`cache/history/<season>/` (never committed), throttles to about one request a
+second, and logs per game and per season to `backfill.log` (with a
+machine-readable `backfill_progress.json` and a per-season
+`backfill_report.json`).
+
+```
+python backfill.py --push            # every past season; commits each as it finishes
+python backfill.py --status          # progress
+python backfill.py --publish-held 20122013 --push   # after reviewing a held season
+```
+
+**Per season, on top of the per-game checks:** the season file is written,
+read back and put through the same league identities; games per team must
+match that season's final standings (`standings/{last day}`: 82 a team in
+2007-08, 48 in 2012-13, 68-71 in the COVID-stopped 2019-20, 56 in 2020-21 --
+all checked against the schedule totals); and each skater's summed per-game
+Official_PM, plus the boxscore +/- of any quarantined game, must equal the
+NHL's own season +/- (`stats/rest/en/skater/summary`). A season that fails a
+season-level check is **held, not published and not dropped**: its file goes
+to `backfill_held/` and the reason to the log and report.
+
+Clubs, conferences and divisions come from the standings as of each season's
+last day, so the 2013 realignment, the 2020-21 temporary divisions (no
+conferences that year) and relocations (ATL to WPG, ARI to UTA) are placed as
+they were. Shortened seasons need no special case: the season table supplies
+each season's dates and scheduled game count.
+
+### What the pilot found (one week each of 2007-08, 2012-13, 2017-18)
+
+What older data looks like, sampled one game per season: 2007-08 and 2008-09
+play-by-play is "limitedScoring" (about 60 plays a game) and its goals carry
+**no `situationCode`**; 2007-08 to 2009-10 have **no JSON shiftcharts**, so the
+HTML reports are the only shift source; from 2010-11 both feeds exist.
+
+Fixes, each traced to a cause and none weakening a check:
+
+- **Goals without a situationCode** get one read off the shift timeline at
+  the goal's second, in the same digit order. Scored against games that do
+  carry real codes, that rule matched 714/717 goals in 2026-27, 290/291 in the
+  2017-18 week and 267/269 in the 2012-13 week, better than any smoothed
+  variant tried. The derived codes still have to reproduce every skater's
+  boxscore +/-.
+- **A goal counts toward GD_on only when the code and the shifts agree** it
+  was clean 5v5. 2017020444 (NYI@BOS) has a goal coded 1551 with six
+  Islanders on the ice -- the goalie was pulled, and the NHL's boxscore gives
+  all six a minus. Such goals are excluded and logged (`code_1551_overruled`).
+  No 2026-27 goal is affected: the rebuilt season matched the published file
+  game for game (115/115).
+- **2007-08 HTML reports log a shift that carries over a period break as one
+  row ending in the next period** ("18:53 / 1:07" to "1:08 / 18:52", duration
+  printed as "45:02"; a full overtime as "0:00 / 5:00" to "0:00 / 0:00"). The
+  parser now splits it into the rest of the period plus the start of the next.
+  The NHL's totals count it that way: OTT@DAL 2007020417 had four skaters
+  exactly 68 s short of the boxscore before, and passes now.
+
+Pilot result after the fixes: **2017-18 47/48, 2012-13 44/47, 2007-08 41/48.**
+Every remaining failure was looked at and is the NHL's records disagreeing
+with each other: shift rows that sum to less than the report's own per-period
+totals (Sundin, BOS@TOR, short 2:46), a boxscore TOI half the report's
+(McCabe, NSH@TOR: 16:15 vs 32:29), a shift present in neither shift feed
+though the NHL credited the skater with the goal (Dupuis, OTT@PIT), and
+power-play status that contradicts the shift rows for both clubs (STL@COL).
+Those games stay quarantined. At those rates 2007-08 and 2012-13 will exceed
+the season gate and be held for review rather than published.
 
 ## The page
 
@@ -132,6 +218,20 @@ file and `players.json`, and folds the rows the filters select in the browser
 -- the same sums as `aggregate.py`. A browser test compared the page's output
 against the Python aggregation across four views (league at 50 min, CHI, CHI
 home, Central last 5): every skater matched.
+
+Seasons: one season (default the current one), a season range (from-to) or
+"Entire career". Ranges and careers fold `player_seasons.json`; the games,
+venue and rookie filters apply only within a single season and are hidden
+otherwise. The minimum TOI scales with the view: 0 for one team, 50 for one
+season, 50 per season for a range (capped at 500), 500 for careers. Every
+player name opens `player.html?id=...`: a season-by-season table (team, GP,
+TOI_5v5, Official_PM, GD_on, Rel, Adjusted; a traded season shows each club
+and then the total), career totals and a chart of Official_PM against Rel by
+season with team labels. The URL is the share link.
+
+A browser test against a scratch site with three seasons compared the career
+view with careers folded in Python straight from the game-level season files:
+all 1,437 skaters matched (largest difference 1.4e-4).
 
 Filters: scope (league / conference / division / team), position (all,
 forwards, defense, C, LW, RW), games (season to date, each skater's last 5 /

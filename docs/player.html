@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player Seasons</title>
+<meta name="description" content="One NHL skater's 5-on-5 Rel and official plus-minus, season by season.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='18' rx='13' ry='6' fill='%23111'/%3E%3Cellipse cx='16' cy='14' rx='13' ry='6' fill='%23333'/%3E%3C/svg%3E">
+<style>
+:root {
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e;
+  --ink-3: #78776f; --rule: #e4e3de; --rule-2: #d3d2cb; --track: #ecebe6;
+  --pos: #0ca30c; --neg: #d03b3b; --focus: #2a78d6; --rel: #2a78d6; --pm: #78776f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7;
+    --ink-3: #96958c; --rule: #2c2c2a; --rule-2: #3a3a37; --track: #2c2c2a;
+    --pos: #0ca30c; --neg: #e05555; --focus: #3987e5; --rel: #5a9ff0; --pm: #a3a296;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7;
+  --ink-3: #96958c; --rule: #2c2c2a; --rule-2: #3a3a37; --track: #2c2c2a;
+  --pos: #0ca30c; --neg: #e05555; --focus: #3987e5; --rel: #5a9ff0; --pm: #a3a296;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 400 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums; padding: 0 16px 56px; }
+.wrap { max-width: 1000px; margin: 0 auto; }
+header { padding: 22px 0 6px; }
+.back { font-size: .82rem; color: var(--ink-2); }
+h1 { font-size: 1.5rem; line-height: 1.2; margin: 8px 0 2px; letter-spacing: -.01em; }
+.sub { color: var(--ink-2); font-size: .86rem; margin: 0; }
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 14px 0; }
+@media (min-width: 620px) { .tiles { grid-template-columns: repeat(5, 1fr); } }
+.tile { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+  padding: 10px 12px; display: flex; flex-direction: column; min-width: 0; }
+.tlabel { font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); }
+.tval { font-size: 1.4rem; font-weight: 650; line-height: 1.15; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 12px 6px; margin: 0 0 14px; }
+.card h2 { font-size: .9rem; margin: 0 0 2px; }
+.card p.note { color: var(--ink-3); font-size: .76rem; margin: 0 0 6px; }
+.key { display: flex; gap: 16px; font-size: .78rem; color: var(--ink-2); margin: 4px 0 2px; flex-wrap: wrap; }
+.key svg { vertical-align: middle; margin-right: 4px; }
+svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { font-size: 11px; fill: var(--ink-3); }
+.chart .tm { font-size: 10px; fill: var(--ink-2); }
+.chart .zero { stroke: var(--rule-2); }
+.chart .grid { stroke: var(--rule); }
+.chart .rel { stroke: var(--rel); fill: none; stroke-width: 2.5; }
+.chart .pm { stroke: var(--pm); fill: none; stroke-width: 2; stroke-dasharray: 5 4; }
+.chart circle.rel { fill: var(--rel); stroke: var(--surface); stroke-width: 1.5; }
+.chart rect.pm { fill: var(--surface); stroke: var(--pm); stroke-width: 2; stroke-dasharray: none; }
+.tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: .82rem; }
+th, td { padding: 7px 9px; white-space: nowrap; border-bottom: 1px solid var(--rule); text-align: right; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+thead th { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); font-weight: 650; }
+tr.stint td { color: var(--ink-2); }
+tr.stint td:first-child { padding-left: 20px; }
+tr.total td { font-weight: 650; }
+tr.career td { font-weight: 700; border-top: 2px solid var(--rule-2); border-bottom: 0; }
+td.rel { font-weight: 650; }
+.state { padding: 22px 0; color: var(--ink-3); }
+footer { margin-top: 20px; color: var(--ink-3); font-size: .74rem; }
+footer a, .back { color: var(--ink-2); }
+a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="index.html">&larr; All skaters</a>
+  <h1 id="name">Loading&hellip;</h1>
+  <p class="sub" id="bio"></p>
+</header>
+<div id="main">
+  <div class="tiles" id="tiles"></div>
+  <section class="card" aria-labelledby="charth">
+    <h2 id="charth">Official plus-minus vs Rel, by season</h2>
+    <p class="note">Official_PM is the NHL's number, all situations. Rel is 5-on-5 goal differential vs. how his team did with him on the bench, scaled to his minutes.</p>
+    <div class="key"><span><svg width="26" height="10" aria-hidden="true"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--rel)" stroke-width="2.5"/><circle cx="13" cy="5" r="3.5" fill="var(--rel)"/></svg>Rel</span>
+      <span><svg width="26" height="10" aria-hidden="true"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--pm)" stroke-width="2" stroke-dasharray="5 4"/><rect x="9.5" y="1.5" width="7" height="7" fill="var(--surface)" stroke="var(--pm)" stroke-width="2"/></svg>Official_PM</span></div>
+    <div id="chart"></div>
+  </section>
+  <div class="tablewrap">
+  <table>
+    <caption class="sr-only" style="position:absolute;left:-9999px">Season by season</caption>
+    <thead><tr><th scope="col">Season</th><th scope="col">Team</th><th scope="col">GP</th><th scope="col">TOI_5v5</th>
+      <th scope="col">Official_PM</th><th scope="col">GD_on</th><th scope="col">Rel</th><th scope="col">Adjusted</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="8" class="state">Loading&hellip;</td></tr></tbody>
+  </table>
+  </div>
+</div>
+<footer>
+  <p>Every season in the data that passed verification. A traded season shows each club, then the season total.
+  Rel for a traded season or a career is worked out per club per season and added up. Games that failed
+  verification are left out of their season, so GP can be a game or two below the official count.</p>
+  <p><a id="careerlink" href="index.html?career=1">Career leaderboard</a> &middot; <a href="data/player_seasons.json">Raw data</a></p>
+</footer>
+</div>
+<script>
+(function () {
+"use strict";
+var $ = function (id) { return document.getElementById(id); };
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
+function signed(v, d) { var r = Number(v.toFixed(d)); if (r === 0) return (0).toFixed(d); return (r > 0 ? "+" : "") + r.toFixed(d); }
+function label(id) { return id.slice(0, 4) + "-" + id.slice(6); }
+var POS = {C: "Centre", L: "Left wing", R: "Right wing", D: "Defence"};
+function getJson(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ": HTTP " + r.status); return r.json(); }); }
+function rel(gd, goff, toi, toff) { return toff ? gd - goff * (toi / toff) : null; }
+
+var pid = parseInt(new URLSearchParams(location.search).get("id"), 10);
+var view = {seasons: []};
+window.apmPlayer = function () { return view; };
+
+getJson("data/index.json").then(function (m) {
+  var v = "?v=" + encodeURIComponent((m.seasons[0] || {}).updated || "");
+  return Promise.all([getJson("data/" + (m.careers || "player_seasons.json") + v), getJson("data/" + m.players + v)]);
+}).then(function (res) {
+  var ps = res[0], pl = res[1], meta = pl.players[String(pid)];
+  var mine = ps.rows.filter(function (r) { return r[1] === pid; });
+  if (!pid || !mine.length) { $("name").textContent = "Player not found"; $("main").innerHTML = '<p class="state">No seasons for this player id in the data.</p>'; return; }
+  var name = meta ? meta[0] : "Player " + pid;
+  document.title = name + " | Player Seasons";
+  $("name").textContent = name;
+  var bits = [];
+  if (meta && POS[meta[1]]) bits.push(POS[meta[1]]);
+  if (meta && meta[2]) bits.push("shoots " + meta[2]);
+  if (meta && meta[3]) bits.push("born " + meta[3]);
+  $("bio").textContent = bits.join(" · ");
+  $("careerlink").href = "index.html?career=1&q=" + encodeURIComponent(name) + "&min=0";
+
+  // cols: s, pid, tm, gp, toi, gf, ga, pm, xm, toff, goff, rk
+  var bySeason = {};
+  mine.forEach(function (r) { (bySeason[r[0]] = bySeason[r[0]] || []).push(r); });
+  var career = {gp: 0, toi: 0, gd: 0, pm: 0, xm: 0, rel: 0, n: 0};
+  var html = [];
+  Object.keys(bySeason).map(Number).sort(function (a, b) { return a - b; }).forEach(function (si) {
+    var stints = bySeason[si], sid = ps.seasons[si];
+    var t = {gp: 0, toi: 0, gd: 0, pm: 0, xm: 0, rel: 0, any: false, teams: []};
+    stints.forEach(function (r) {
+      var gd = r[5] - r[6], rv = rel(gd, r[10], r[4], r[9]);
+      t.gp += r[3]; t.toi += r[4]; t.gd += gd; t.pm += r[7]; t.xm += r[8];
+      if (rv !== null) { t.rel += rv; t.any = true; }
+      t.teams.push(r[2]);
+      r.relv = rv;
+    });
+    var row = function (cls, seasonCell, team, gp, toi, pm, gd, rv, adj) {
+      return '<tr class="' + cls + '"><td>' + seasonCell + "</td><td>" + esc(team) + "</td><td>" + gp + "</td><td>" + (toi / 60).toFixed(1) +
+        "</td><td>" + signed(pm, 0) + "</td><td>" + signed(gd, 0) + '</td><td class="rel">' + (rv === null ? "--" : signed(rv, 2)) +
+        "</td><td>" + signed(adj, 2) + "</td></tr>";
+    };
+    if (stints.length > 1) {
+      stints.forEach(function (r) { html.push(row("stint", "", r[2], r[3], r[4], r[7], r[5] - r[6], r.relv, (r[5] - r[6]) - r[8] / 10000)); });
+      html.push(row("total", label(sid), t.teams.join("/"), t.gp, t.toi, t.pm, t.gd, t.any ? t.rel : null, t.gd - t.xm / 10000));
+    } else {
+      var r = stints[0];
+      html.push(row("", label(sid), r[2], r[3], r[4], r[7], r[5] - r[6], r.relv, (r[5] - r[6]) - r[8] / 10000));
+    }
+    view.seasons.push({season: sid, team: t.teams.join("/"), gp: t.gp, toi: t.toi / 60, pm: t.pm, gd: t.gd,
+                       rel: t.any ? t.rel : null, adj: t.gd - t.xm / 10000});
+    career.gp += t.gp; career.toi += t.toi; career.gd += t.gd; career.pm += t.pm; career.xm += t.xm; career.rel += t.rel; career.n++;
+  });
+  html.push('<tr class="career"><td>Career</td><td>' + career.n + " season" + (career.n === 1 ? "" : "s") + "</td><td>" + career.gp + "</td><td>" +
+    (career.toi / 60).toFixed(1) + "</td><td>" + signed(career.pm, 0) + "</td><td>" + signed(career.gd, 0) + '</td><td class="rel">' +
+    signed(career.rel, 2) + "</td><td>" + signed(career.gd - career.xm / 10000, 2) + "</td></tr>");
+  $("rows").innerHTML = html.join("");
+  view.career = {gp: career.gp, toi: career.toi / 60, pm: career.pm, gd: career.gd, rel: career.rel, adj: career.gd - career.xm / 10000};
+  var tile = function (l, v) { return '<div class="tile"><span class="tlabel">' + esc(l) + '</span><span class="tval">' + esc(v) + "</span></div>"; };
+  $("tiles").innerHTML = tile("Seasons", String(career.n)) + tile("Games", String(career.gp)) +
+    tile("Career Rel", signed(career.rel, 2)) + tile("Career Official_PM", signed(career.pm, 0)) +
+    tile("Career Adjusted", signed(career.gd - career.xm / 10000, 2));
+  drawChart(view.seasons);
+}).catch(function (err) {
+  $("name").textContent = "Could not load the data";
+  $("main").innerHTML = '<p class="state">' + esc(err && err.message || err) + "</p>";
+});
+
+function drawChart(rows) {
+  // Drawn at the container's real width, so 11px labels stay 11px on a phone.
+  var W = Math.max(300, Math.round($("chart").clientWidth || 760)), H = W < 500 ? 240 : 300, L = 36, R = 12, T = 14, B = 46;
+  var vals = [];
+  rows.forEach(function (r) { vals.push(r.pm); if (r.rel !== null) vals.push(r.rel); });
+  var lo = Math.min(0, Math.min.apply(null, vals)), hi = Math.max(0, Math.max.apply(null, vals));
+  var step = Math.max(5, Math.ceil((hi - lo) / 6 / 5) * 5);
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  if (hi === lo) hi = lo + step;
+  var n = rows.length, x = function (i) { return n === 1 ? (L + W - R) / 2 : L + i * (W - L - R) / (n - 1); };
+  var y = function (v) { return T + (hi - v) / (hi - lo) * (H - T - B); };
+  var out = ['<svg class="chart" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Official plus-minus and Rel by season">'];
+  for (var g = lo; g <= hi; g += step) {
+    out.push('<line class="' + (g === 0 ? "zero" : "grid") + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g) + '" y2="' + y(g) + '"/>');
+    out.push('<text x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + (g > 0 ? "+" : "") + g + "</text>");
+  }
+  var path = function (key) {
+    var d = [], pen = "M";
+    rows.forEach(function (r, i) { if (r[key] === null) { pen = "M"; return; } d.push(pen + x(i).toFixed(1) + "," + y(r[key]).toFixed(1)); pen = "L"; });
+    return d.join(" ");
+  };
+  out.push('<path class="pm" d="' + path("pm") + '"/>');
+  out.push('<path class="rel" d="' + path("rel") + '"/>');
+  var every = Math.max(1, Math.ceil(n / Math.max(4, Math.floor((W - L - R) / 64))));
+  rows.forEach(function (r, i) {
+    var cx = x(i).toFixed(1);
+    out.push('<rect class="pm" x="' + (x(i) - 3.5).toFixed(1) + '" y="' + (y(r.pm) - 3.5).toFixed(1) + '" width="7" height="7"><title>' +
+      esc(label(r.season) + " " + r.team + ": Official_PM " + signed(r.pm, 0)) + "</title></rect>");
+    if (r.rel !== null) out.push('<circle class="rel" cx="' + cx + '" cy="' + y(r.rel).toFixed(1) + '" r="4"><title>' +
+      esc(label(r.season) + " " + r.team + ": Rel " + signed(r.rel, 2)) + "</title></circle>");
+    if (i % every === 0 || i === n - 1) {
+      out.push('<text x="' + cx + '" y="' + (H - B + 16) + '" text-anchor="middle">' + esc(label(r.season).replace(/^20/, "")) + "</text>");
+      out.push('<text class="tm" x="' + cx + '" y="' + (H - B + 30) + '" text-anchor="middle">' + esc(r.team) + "</text>");
+    }
+  });
+  out.push("</svg>");
+  $("chart").innerHTML = out.join("");
+}
+})();
+</script>
+</body>
+</html>

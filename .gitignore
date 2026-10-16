@@ -3,3 +3,9 @@ __pycache__/
 .DS_Store
 # Raw API responses: kept in the GitHub Actions cache, never committed.
 cache/
+# Backfill run state: progress and logs are local, the report is per machine.
+backfill.log
+backfill_progress.json
+backfill_report.json
+backfill_held/
+backfill.out

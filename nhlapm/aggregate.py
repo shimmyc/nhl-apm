@@ -9,8 +9,15 @@ special case:
 
     Expected = sum(Expected_game)
     Adjusted = GD_on - Expected
-    Rel      = GD_on - GD_off x (TOI_on / TOI_off)    off-ice summed over the
+    Rel      = sum over team stints of
+               GD_on - GD_off x (TOI_on / TOI_off)    off-ice summed over the
                                                        same games the skater played
+
+Rel is the one column that is not a plain sum: its scale factor is a ratio,
+and a ratio over two clubs' bench minutes would compare a skater with a
+blend of two teams. So a traded skater's Rel is worked out per club and the
+per-club figures are added -- the same rule a career row uses (careers.py),
+where a stint is one season with one club.
 """
 
 from __future__ import annotations
@@ -30,6 +37,17 @@ def team_label(rows: list[PlayerGame]) -> str:
         if row.team not in order:
             order.append(row.team)
     return "/".join(order)
+
+
+def rel_value(gd_on: int, gd_off: int, toi: int, toi_off: int) -> float | None:
+    return gd_on - gd_off * (toi / toi_off) if toi_off else None
+
+
+def stint_rel(stints) -> float | None:
+    """Sum of per-stint Rel; each stint is (gd_on, gd_off, toi, toi_off)."""
+    parts = [rel_value(*s) for s in stints]
+    parts = [p for p in parts if p is not None]
+    return sum(parts) if parts else None
 
 
 def aggregate(rows: Iterable[PlayerGame], players: dict[int, list] | None = None,
@@ -53,6 +71,11 @@ def aggregate(rows: Iterable[PlayerGame], players: dict[int, list] | None = None
         gd_off = sum(r.gd_off for r in games)
         gd_on = gf - ga
 
+        by_team: dict[str, list[int]] = {}
+        for r in games:
+            acc = by_team.setdefault(r.team, [0, 0, 0, 0])
+            acc[0] += r.gd_on; acc[1] += r.gd_off; acc[2] += r.toi_5v5; acc[3] += r.toi_off
+
         meta = players.get(pid)
         if meta:
             name, position = meta[0], meta[1]
@@ -68,7 +91,7 @@ def aggregate(rows: Iterable[PlayerGame], players: dict[int, list] | None = None
             share=toi / team_toi if team_toi else 0.0,
             expected=expected, adjusted=gd_on - expected,
             gd_off=gd_off, toi_off=toi_off / 60.0,
-            rel=gd_on - gd_off * (toi / toi_off) if toi_off else None,
+            rel=stint_rel(by_team.values()),
             gd_on_per_60=gd_on * SECONDS_PER_HOUR / toi if toi else None,
             team_gd_per_60=team_gd * SECONDS_PER_HOUR / team_toi if team_toi else None,
             team=team_label(games),

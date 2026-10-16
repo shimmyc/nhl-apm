@@ -67,6 +67,9 @@ class Goal:
     scoring_team_id: int
     scorer_id: int | None
     goalie_in_net_id: int | None
+    # True when the play-by-play had no situationCode and it was read off the
+    # shift timeline (pipeline._fill_situation_codes).
+    code_derived: bool = False
 
     @property
     def is_clean_5v5_code(self) -> bool:

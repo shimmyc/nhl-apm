@@ -34,7 +34,7 @@ ROW_RE = re.compile(r"<tr[^>]*>(.*?)</tr>", re.S | re.I)
 CELL_RE = re.compile(r"<t[dh][^>]*>(.*?)</t[dh]>", re.S | re.I)
 TAG_RE = re.compile(r"<[^>]+>")
 HEADING_RE = re.compile(r"^\s*(\d+)\s+(.+?)\s*$")
-ELAPSED_RE = re.compile(r"^\s*(\d+:\d{2})\s*/\s*\d+:\d{2}\s*$")
+ELAPSED_RE = re.compile(r"^\s*(\d+:\d{2})\s*/\s*(\d+:\d{2})\s*$")
 
 
 def _text(fragment: str) -> str:
@@ -56,6 +56,14 @@ def _period_number(value: str) -> int | None:
     if value.isdigit():
         return int(value)
     return config.HTML_PERIOD_ALIASES.get(value.upper())
+
+
+def _clock_pair(cell: str) -> tuple[int, int] | None:
+    """'0:35 / 19:25' -> (35, 1165): (elapsed, remaining) seconds."""
+    match = ELAPSED_RE.match(cell)
+    if not match:
+        return None
+    return clock_to_seconds(match.group(1)), clock_to_seconds(match.group(2))
 
 
 def _elapsed(cell: str) -> str | None:
@@ -91,15 +99,32 @@ def _section_shifts(section: str) -> list[tuple[int, int, int, str | None]]:
         cells = [_text(cell) for cell in CELL_RE.findall(row)]
         if len(cells) < 5 or not cells[0].isdigit():
             continue
-        start = _elapsed(cells[2])
-        end = _elapsed(cells[3])
+        start = _clock_pair(cells[2])
+        end = _clock_pair(cells[3])
         if start is None or end is None:
             continue  # summary row, or a cell without the "elapsed / remaining" shape
         period = _period_number(cells[1])
         if period is None:
             continue
-        out.append((period, clock_to_seconds(start), clock_to_seconds(end),
-                    cells[4] if len(cells) > 4 else None))
+        start_s, end_s = start[0], end[0]
+        duration = cells[4] if len(cells) > 4 else None
+        if end_s <= start_s:
+            # Older reports (2007-08) log a shift that carries over a period
+            # break as one row whose end is an elapsed time in the *next*
+            # period:
+            #   P1  "18:53 / 1:07" -> "1:08 / 18:52"  (on until 1:08 of P2)
+            #   OT  "0:00 / 5:00"  -> "0:00 / 0:00"   (on to the end of OT)
+            # The NHL's own totals count it that way: OTT@DAL 2007020417 has
+            # four skaters exactly 68 s short in the boxscore otherwise. So the
+            # row becomes the rest of this period plus the start of the next.
+            # Not taken on trust: the game must still match the boxscore TOI
+            # for every player or it is quarantined.
+            length = start[0] + start[1]
+            out.append((period, start_s, length, duration))
+            if end_s > 0:
+                out.append((period + 1, 0, end_s, duration))
+            continue
+        out.append((period, start_s, end_s, duration))
     return out
 
 

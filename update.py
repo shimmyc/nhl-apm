@@ -25,7 +25,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from nhlapm import aggregate, checks, config, output, pipeline, seasons, site, store
+from nhlapm import aggregate, careers, checks, config, output, pipeline, seasons, site, store
 from nhlapm.fetch import Fetcher
 
 ROOT = Path(__file__).resolve().parent
@@ -157,9 +157,12 @@ def main(argv: list[str] | None = None) -> int:
     data_dir.mkdir(parents=True, exist_ok=True)
     store.season_path(docs_dir, args.season).write_text(season_text, encoding="utf-8")
     (data_dir / "players.json").write_text(players_text, encoding="utf-8")
+    (data_dir / careers.FILE_NAME).write_text(
+        store.dumps_compact(careers.update(docs_dir, shipped)), encoding="utf-8")
     manifest = store.manifest_to_json(docs_dir, shipped)
     (data_dir / "index.json").write_text(store.dumps_compact(manifest), encoding="utf-8")
     (docs_dir / "index.html").write_text(page, encoding="utf-8")
+    (docs_dir / "player.html").write_text(site.render_player_page(), encoding="utf-8")
     (docs_dir / ".nojekyll").write_text("", encoding="utf-8")
 
     # The Blackhawks CSV keeps its old address, now computed the new way.

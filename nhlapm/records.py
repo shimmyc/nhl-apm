@@ -92,10 +92,22 @@ class GameRecord:
 
 def compute_game(context: GameContext, timeline: GameTimeline,
                  boxscore: dict) -> GameRecord:
-    """Both teams' per-skater rows for one game."""
+    """Both teams' per-skater rows for one game.
+
+    A goal counts toward GD_on only when both feeds call it clean 5v5: the
+    play-by-play situationCode is 1551 *and* the shift timeline shows five
+    skaters and a goalie a side at that second. The second half matters in
+    older seasons, where an extra attacker for a pulled goalie is sometimes
+    coded 1551 (2017020444, NYI@BOS: six Islanders on the ice per both shift
+    feeds, and the NHL's own boxscore gives all six a minus). Such a goal
+    falls outside clean time by construction, so counting it would break the
+    TOI/GD identities; it is excluded and logged as `code_1551_overruled`.
+    In the 2026-27 data to date no goal is affected.
+    """
     diagnostics = stats_mod.Diagnostics()
-    goals = stats_mod.qualifying_goals(context.goals, diagnostics)
+    coded = stats_mod.qualifying_goals(context.goals, diagnostics)
     clean = timeline.clean_5v5
+    goals = [g for g in coded if timeline.state_at(g.absolute_second) == (1, 5, 5, 1)]
 
     home_gf = sum(1 for g in goals if g.scoring_team_id == context.home_id)
     away_gf = sum(1 for g in goals if g.scoring_team_id == context.away_id)
@@ -151,8 +163,8 @@ def compute_game(context: GameContext, timeline: GameTimeline,
         state = timeline.state_at(goal.absolute_second)
         where = f"{context.ref.game_id} P{goal.period} {goal.time_in_period}"
         if goal.is_clean_5v5_code and state != (1, 5, 5, 1):
-            notes.setdefault("code_1551_not_clean", []).append(
-                f"{where} code 1551 but shifts show {''.join(map(str, state))}")
+            notes.setdefault("code_1551_overruled", []).append(
+                f"{where} code 1551 but shifts show {''.join(map(str, state))}; not counted")
         if not goal.is_clean_5v5_code and state == (1, 5, 5, 1):
             notes.setdefault("clean_but_other_code", []).append(
                 f"{where} code {goal.situation_code} but shifts show 1551")

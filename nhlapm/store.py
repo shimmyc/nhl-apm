@@ -200,12 +200,16 @@ def season_label(season: str) -> str:
     return f"{season[:4]}-{season[6:]}" if len(season) == 8 else season
 
 
-def manifest_to_json(docs_dir: Path, current: Season) -> dict:
-    """Every season file on disk, newest first; the current one is the default."""
+def manifest_to_json(docs_dir: Path, current: Season | None = None) -> dict:
+    """Every season file on disk, newest first; the newest is the default.
+
+    The newest season on disk is the current one: the daily run only ever
+    writes the current season, and past seasons are older by definition.
+    """
     seasons = []
     for path in sorted(data_dir(docs_dir).glob("[0-9]" * 8 + ".json"), reverse=True):
         sid = path.stem
-        updated = current.updated if sid == current.season else ""
+        updated = current.updated if current and sid == current.season else ""
         if not updated:
             try:
                 updated = json.loads(path.read_text(encoding="utf-8")).get("updated", "")
@@ -213,5 +217,6 @@ def manifest_to_json(docs_dir: Path, current: Season) -> dict:
                 updated = ""
         seasons.append({"id": sid, "label": season_label(sid), "file": path.name,
                         "updated": updated})
-    return {"v": FORMAT_VERSION, "default": current.season, "players": "players.json",
+    return {"v": FORMAT_VERSION, "default": seasons[0]["id"] if seasons else "",
+            "players": "players.json", "careers": "player_seasons.json",
             "seasons": seasons}

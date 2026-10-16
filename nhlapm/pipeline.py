@@ -19,10 +19,11 @@ a game the NHL corrects later rejoins without anyone intervening.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import copy
+from dataclasses import dataclass, field, replace
 from datetime import date as date_cls, datetime, timezone
 
-from . import checks, config, parse
+from . import checks, config, parse, seasons
 from .fetch import Fetcher, FetchError
 from .loader import html_context, load_game_context
 from .parse import GameRef
@@ -57,11 +58,41 @@ def _evaluate(context, boxscore: dict) -> tuple[GameRecord | None,
     if timeline.clean_5v5_minutes < config.MIN_PLAUSIBLE_5V5_MINUTES:
         return None, None, (f"only {timeline.clean_5v5_minutes:.2f} clean 5v5 minutes "
                             f"(below the {config.MIN_PLAUSIBLE_5V5_MINUTES:.0f} min floor)")
+    context, derived = _fill_situation_codes(context, timeline)
     record = compute_game(context, timeline, boxscore)
     verdict = checks.verify_game(context, timeline, boxscore, record)
     if verdict.boundary:
         record.notes["pm_line_change_on_goal_second"] = list(verdict.boundary)
+    if derived:
+        record.notes["situation_from_shifts"] = derived
     return record, verdict, (None if verdict.ok else "; ".join(verdict.failures))
+
+
+def _fill_situation_codes(context, timeline) -> tuple[object, list[str]]:
+    """Give goals that lack a situationCode one read off the shift timeline.
+
+    Older play-by-play (2007-08 is "limitedScoring": about 60 plays a game)
+    carries goals with no situationCode at all. The shift timeline knows how
+    many skaters and goalies each side had at every second, in the same digit
+    order (away goalies, away skaters, home skaters, home goalies), so the
+    code is read from it at the goal's second -- the same second the on-ice
+    sets use. This is not taken on trust: the derived codes decide which
+    goals earn official +/-, and verify_game must still reproduce every
+    skater's boxscore +/- from them, a feed this pipeline never computes from.
+    """
+    missing = [g for g in context.goals if not g.situation_code and not g.is_shootout]
+    if not missing:
+        return context, []
+    filled = copy.copy(context)
+    notes, goals = [], []
+    for goal in context.goals:
+        if goal in missing:
+            code = "".join(map(str, timeline.state_at(goal.absolute_second)))
+            notes.append(f"{context.ref.game_id} P{goal.period} {goal.time_in_period} -> {code}")
+            goal = replace(goal, situation_code=code, code_derived=True)
+        goals.append(goal)
+    filled.goals = goals
+    return filled, notes
 
 
 def process_game(fetcher: Fetcher, ref: GameRef, season: str, *,
@@ -115,16 +146,24 @@ def process_game(fetcher: Fetcher, ref: GameRef, season: str, *,
 # -- discovery -------------------------------------------------------------
 
 def discover_league_games(fetcher: Fetcher, season: str,
-                          today: date_cls | None = None) -> tuple[list[GameRef], int]:
-    """Every completed regular-season game this season, league-wide.
+                          today: date_cls | None = None, *,
+                          start: str | None = None,
+                          end: str | None = None) -> tuple[list[GameRef], int]:
+    """Every completed regular-season game in a season, league-wide.
 
     Walks the weekly schedule from the season's first day. Settled weeks come
     from the cache, so a daily run makes one or two schedule requests.
+
+    The date range comes from the NHL's season table (seasons.season_info),
+    so the same walk serves the current season and any past one. `start` /
+    `end` narrow it to a slice, as the pilot does.
     """
     today = today or datetime.now(timezone.utc).date()
-    first = fetcher.schedule_week(today.isoformat())
-    start = first.get("regularSeasonStartDate") or today.isoformat()
-    season_end = first.get("regularSeasonEndDate") or ""
+    info = seasons.season_info(fetcher, season)
+    start = start or info.start
+    season_end = end or info.end
+    if season_end:
+        today = min(today, date_cls.fromisoformat(season_end))
 
     games: dict[int, GameRef] = {}
     pending = 0
@@ -132,10 +171,11 @@ def discover_league_games(fetcher: Fetcher, season: str,
     seen_weeks = set()
     while cursor and cursor not in seen_weeks and cursor <= today.isoformat():
         seen_weeks.add(cursor)
-        payload = first if cursor == today.isoformat() else fetcher.schedule_week(cursor)
+        payload = fetcher.schedule_week(cursor)
         completed, unplayed = parse.parse_schedule_week(payload)
         for ref in completed:
-            if str(ref.game_id).startswith(season[:4]):
+            if str(ref.game_id).startswith(season[:4]) and \
+                    (not season_end or ref.date <= season_end):
                 games[ref.game_id] = ref
         pending += unplayed
         cursor = payload.get("nextStartDate")
@@ -159,10 +199,14 @@ def team_metadata(standings: dict) -> tuple[dict[str, tuple[str, str, str]],
         abbr = (entry.get("teamAbbrev") or {}).get("default")
         if not abbr:
             continue
-        conf, div = entry.get("conferenceAbbrev", ""), entry.get("divisionAbbrev", "")
+        # 2020-21 had no conferences: the field is absent, not empty.
+        conf = entry.get("conferenceAbbrev") or ""
+        div = entry.get("divisionAbbrev") or ""
         teams[abbr] = ((entry.get("teamName") or {}).get("default", abbr), conf, div)
-        confs[conf] = entry.get("conferenceName", conf)
-        divs[div] = entry.get("divisionName", div)
+        if conf:
+            confs[conf] = entry.get("conferenceName") or conf
+        if div:
+            divs[div] = entry.get("divisionName") or div
         played[abbr] = entry.get("gamesPlayed", 0)
     return teams, confs, divs, played
 
@@ -197,7 +241,15 @@ class LeagueRun:
 
 def run_league(fetcher: Fetcher, season_id: str, previous: Season | None, *,
                rebuild: bool = False, html_fallback: bool = True,
-               refetch_quarantined: bool = True, log=print) -> LeagueRun:
+               refetch_quarantined: bool = True, historical: bool = False,
+               log=print) -> LeagueRun:
+    """One season, league-wide.
+
+    `historical` is for a finished season: clubs, conferences and divisions
+    come from the standings as of that season's last regular-season day (so a
+    relocated or realigned club is placed where it was then), and the
+    season-level reports are read from the cache instead of refetched.
+    """
     games, pending = discover_league_games(fetcher, season_id)
     season = Season(season=season_id)
     run = LeagueRun(season=season, pending_games=pending)
@@ -239,17 +291,21 @@ def run_league(fetcher: Fetcher, season_id: str, previous: Season | None, *,
             f"{ref.away_abbrev}@{ref.home_abbrev} "
             f"{'cache' if was_cached else 'fetch'}  {status}")
 
-    # Metadata: three requests, refetched every run.
-    standings = fetcher.standings()
+    # Metadata: refetched every run for the current season.
+    if historical:
+        standings = fetcher.standings_on(seasons.season_info(fetcher, season_id).end)
+    else:
+        standings = fetcher.standings()
     season.teams, season.conferences, season.divisions, run.standings_games = \
         team_metadata(standings)
-    rookies = fetcher.rookies(season_id)
+    rookies = fetcher.rookies(season_id, fresh=not historical)
     season.rookies = {entry["playerId"] for entry in rookies.get("data", [])}
     return run
 
 
 def collect_player_metadata(fetcher: Fetcher, season_id: str, season: Season,
-                            existing: dict[int, list]) -> tuple[dict[int, list], list[int]]:
+                            existing: dict[int, list], fresh: bool = True
+                            ) -> tuple[dict[int, list], list[int]]:
     """Merge this season's skater bios into the shared lookup.
 
     Returns (players, ids still missing). Missing ids -- a skater the bios
@@ -257,7 +313,7 @@ def collect_player_metadata(fetcher: Fetcher, season_id: str, season: Season,
     roster so the page always has a name and position to show.
     """
     players = dict(existing)
-    players.update(player_metadata(fetcher.skater_bios(season_id)))
+    players.update(player_metadata(fetcher.skater_bios(season_id, fresh=fresh)))
     missing = sorted({r.player_id for r in season.rows} - set(players))
     return players, missing
 
