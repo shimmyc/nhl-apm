@@ -256,6 +256,7 @@ a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
     <tbody id="rows"><tr><td colspan="8" class="state">Loading&hellip;</td></tr></tbody>
   </table>
   </div>
+  <p class="prov" id="partnote"></p>
 </div>
 <footer>
   <p>Every season in the data that passed verification. A traded season shows each club, then the season total.
@@ -270,7 +271,8 @@ a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 var $ = function (id) { return document.getElementById(id); };
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
 function signed(v, d) { var r = Number(v.toFixed(d)); if (r === 0) return (0).toFixed(d); return (r > 0 ? "+" : "") + r.toFixed(d); }
-function label(id) { return id.slice(0, 4) + "-" + id.slice(6); }
+var PART = {};
+function label(id) { return id.slice(0, 4) + "-" + id.slice(6) + (PART[id] ? "†" : ""); }
 var POS = {C: "Centre", L: "Left wing", R: "Right wing", D: "Defence"};
 function getJson(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ": HTTP " + r.status); return r.json(); }); }
 function rel(gd, goff, toi, toff) { return toff ? gd - goff * (toi / toff) : null; }
@@ -280,6 +282,7 @@ var view = {seasons: []};
 window.apmPlayer = function () { return view; };
 
 getJson("data/index.json").then(function (m) {
+  m.seasons.forEach(function (s) { if (s.quarantined) PART[s.id] = s; });
   var v = "?v=" + encodeURIComponent((m.seasons[0] || {}).updated || "");
   return Promise.all([getJson("data/" + (m.careers || "player_seasons.json") + v), getJson("data/" + m.players + v)]);
 }).then(function (res) {
@@ -331,6 +334,14 @@ getJson("data/index.json").then(function (m) {
     (career.toi / 60).toFixed(1) + "</td><td>" + signed(career.pm, 0) + "</td><td>" + signed(career.gd, 0) + '</td><td class="rel">' +
     signed(career.rel, 2) + "</td><td>" + signed(career.gd - career.xm / 10000, 2) + "</td></tr>");
   $("rows").innerHTML = html.join("");
+  var partial = view.seasons.filter(function (x) { return PART[x.season]; });
+  $("partnote").innerHTML = partial.length
+    ? "† Partial season: games that failed verification are left out. " + partial.map(function (x) {
+        var e = PART[x.season];
+        return esc(label(x.season).replace("†", "") + ": " + e.games.toLocaleString() + " of " +
+          (e.games + e.quarantined).toLocaleString() + " games verified");
+      }).join("; ") + "." : "";
+  view.partial = partial.map(function (x) { return x.season; });
   view.career = {gp: career.gp, toi: career.toi / 60, pm: career.pm, gd: career.gd, rel: career.rel, adj: career.gd - career.xm / 10000};
   var tile = function (l, v) { return '<div class="tile"><span class="tlabel">' + esc(l) + '</span><span class="tval">' + esc(v) + "</span></div>"; };
   $("tiles").innerHTML = tile("Seasons", String(career.n)) + tile("Games", String(career.gp)) +
@@ -495,6 +506,7 @@ th.player, thead th:first-child { position: sticky; left: 0; z-index: 2;
   background: var(--surface); border-right: 1px solid var(--rule); }
 th.player { font-weight: 500; }
 th.player a { color: inherit; text-decoration: none; }
+.dag { color: var(--ink-3); margin-left: 2px; font-size: .8em; }
 th.player a:hover { text-decoration: underline; }
 th.player a:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .gnote { color: var(--ink-3); font-size: .74rem; margin: 0; grid-column: 1 / -1; }
@@ -933,7 +945,8 @@ function computeStints() {
     var label = Object.keys(first).sort(function (a, b) { return first[a] - first[b] || (a < b ? -1 : 1); }).join("/");
     out.push({pid: p.pid, name: p.name, team: label, pos: POS_LABEL[p.pos] || p.pos, gp: gp,
               toi: toi / 60, pm: pm, gd: gdOn, nc: pm - gdOn, exp: exp, adj: gdOn - exp, rel: clubRel(club),
-              gd60: toi ? gdOn * 3600 / toi : null, sec: toi, ns: Object.keys(nseason).length});
+              gd60: toi ? gdOn * 3600 / toi : null, sec: toi, ns: Object.keys(nseason).length,
+              part: Object.keys(nseason).some(function (si) { return PARTIAL[C.seasons[si]]; })});
   }
   return out;
 }
@@ -993,7 +1006,7 @@ function renderBody() {
     for (var c = 0; c < cols.length; c++) {
       var col = cols[c], rate = S.per60 && col.rate, v = value(row, col), text = fmt(v, col, rate);
       if (col.k === "name") cells.push('<th scope="row" class="txt player"><a href="player.html?id=' +
-        row.pid + '">' + text + "</a></th>");
+        row.pid + '">' + text + "</a>" + (row.part ? '<span class="dag" title="Includes a season with games left out (see the note below the table)">†</span>' : "") + "</th>");
       else if (col.hl) {
         var shown = v === null ? 0 : Number(v.toFixed(2));
         var wash = shown === 0 ? "z" : (shown > 0 ? "p" : "n");
@@ -1058,13 +1071,22 @@ function label(id) {
   var e = MANIFEST.seasons.filter(function (s) { return s.id === id; })[0];
   return e ? e.label : id.slice(0, 4) + "-" + id.slice(6);
 }
+var PARTIAL = {};
+function partialSeasons(ids) {
+  return MANIFEST.seasons.filter(function (s) { return s.quarantined && ids.indexOf(s.id) >= 0; });
+}
+function partialText(s) {
+  return s.label + ": " + s.games.toLocaleString() + " of " + (s.games + s.quarantined).toLocaleString() + " games verified";
+}
 function renderMeta() {
   if (multi()) {
-    var ids = rangeIds();
+    var ids = rangeIds(), part = partialSeasons(ids);
     $("through").textContent = "";
     $("prov").textContent = ids.length + " season" + (ids.length === 1 ? "" : "s") +
       " folded from season totals per player and club (data/player_seasons.json). Every game behind them " +
-      "passed the same per-game checks as the current season; games that failed are left out of their season.";
+      "passed the same per-game checks; games that failed are left out of their season." +
+      (part.length ? " † marks a player with a partial season in this view. Partial seasons — " +
+        part.map(partialText).join("; ") + "." : "");
     $("excluded").innerHTML = "";
     return;
   }
@@ -1075,6 +1097,8 @@ function renderMeta() {
   $("prov").textContent = D.games.length.toLocaleString() + " games included. Shift data: " +
     Object.keys(counts).sort().map(function (k) { return counts[k] + " from " + k; }).join(", ") +
     ". Every game is checked against the boxscore's published time on ice and plus-minus before it is counted.";
+  var pe = partialSeasons([S.season])[0];
+  if (pe) $("prov").textContent = partialText(pe) + ". " + $("prov").textContent;
   if (D.excluded.length) {
     $("excluded").innerHTML = '<details class="excl"><summary>' + D.excluded.length +
       " game" + (D.excluded.length === 1 ? "" : "s") + " excluded (failed verification)</summary><ul>" +
@@ -1278,6 +1302,7 @@ if (window.matchMedia && !window.matchMedia("(min-width: 760px)").matches) $("fi
 S = readUrl();
 getJson("data/index.json", true).then(function (m) {
   MANIFEST = m;
+  m.seasons.forEach(function (s) { if (s.quarantined) PARTIAL[s.id] = s; });
   return (multi() ? loadCareers() : load(S.season || m["default"]));
 }).then(function () {
   syncControls(); wire(); renderMeta(); refresh();

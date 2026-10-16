@@ -209,14 +209,18 @@ def manifest_to_json(docs_dir: Path, current: Season | None = None) -> dict:
     seasons = []
     for path in sorted(data_dir(docs_dir).glob("[0-9]" * 8 + ".json"), reverse=True):
         sid = path.stem
-        updated = current.updated if current and sid == current.season else ""
-        if not updated:
-            try:
-                updated = json.loads(path.read_text(encoding="utf-8")).get("updated", "")
-            except (OSError, json.JSONDecodeError):
-                updated = ""
+        updated, verified, quarantined = "", 0, 0
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            updated = raw.get("updated", "")
+            verified = len(raw.get("games", {}).get("rows", []))
+            quarantined = len(raw.get("excluded", {}).get("rows", []))
+        except (OSError, json.JSONDecodeError):
+            pass
+        if current and sid == current.season:
+            updated = current.updated or updated
         seasons.append({"id": sid, "label": season_label(sid), "file": path.name,
-                        "updated": updated})
+                        "updated": updated, "games": verified, "quarantined": quarantined})
     return {"v": FORMAT_VERSION, "default": seasons[0]["id"] if seasons else "",
             "players": "players.json", "careers": "player_seasons.json",
             "seasons": seasons}

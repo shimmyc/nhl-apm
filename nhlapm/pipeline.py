@@ -26,7 +26,7 @@ from datetime import date as date_cls, datetime, timezone
 from . import checks, config, parse, seasons
 from .fetch import Fetcher, FetchError
 from .loader import html_context, load_game_context
-from .parse import GameRef
+from .parse import GameRef, Shift
 from .records import GameRecord, compute_game
 from .store import Excluded, Season
 from .timeline import build_timeline
@@ -50,6 +50,7 @@ def _evaluate(context, boxscore: dict) -> tuple[GameRecord | None,
     """(record, verdict, reason-if-unusable) for one shift source."""
     if not context.shifts:
         return None, None, "no shift rows"
+    context, filled = _fill_goalie_periods(context, boxscore)
     timeline = build_timeline(context)
     if timeline is None:
         return None, None, "no usable shift intervals"
@@ -65,7 +66,51 @@ def _evaluate(context, boxscore: dict) -> tuple[GameRecord | None,
         record.notes["pm_line_change_on_goal_second"] = list(verdict.boundary)
     if derived:
         record.notes["situation_from_shifts"] = derived
+    if filled:
+        record.notes["goalie_period_filled"] = filled
     return record, verdict, (None if verdict.ok else "; ".join(verdict.failures))
+
+
+def _fill_goalie_periods(context, boxscore: dict) -> tuple[object, list[str]]:
+    """Restore a goalie's whole period that the NHL's shift feeds left out.
+
+    Some older reports have no row at all for a goalie for one full period
+    (2013-14 NSH@NYI: Nabokov has P1 and P3 rows and nothing for P2), in both
+    the JSON feed and the HTML report, so the boxscore TOI comes out exactly
+    20:00 higher. It is filled only when every condition holds: the period was
+    played, the goalie has no shift seconds in it, no other goalie of his team
+    has any in it, and the boxscore shortfall is one full period to within the
+    TOI tolerance. Anything murkier (a row labelled with the wrong period, a
+    pulled goalie) is left alone and fails verification as before.
+    """
+    official = checks.boxscore_toi(boxscore)
+    by_player: dict[int, list] = {}
+    for sh in context.shifts:
+        by_player.setdefault(sh.player_id, []).append(sh)
+    adds, notes = [], []
+    for pid, player in context.roster.items():
+        if not player.is_goalie or pid not in official:
+            continue
+        mine = by_player.get(pid, [])
+        shortfall = official[pid][0] - sum(s.end - s.start for s in mine)
+        if abs(shortfall - config.REGULATION_PERIOD_SECONDS) > checks.TOLERANCE_SECONDS:
+            continue
+        for period in sorted(context.periods_in_play):
+            if period > 3 or any(s.period == period for s in mine):
+                continue
+            if any(s.period == period and s.team_id == player.team_id and s.player_id != pid
+                   and context.roster[s.player_id].is_goalie for s in context.shifts):
+                continue
+            start = (period - 1) * config.REGULATION_PERIOD_SECONDS
+            adds.append(Shift(pid, player.team_id, player.team_abbrev, period,
+                              start, start + config.REGULATION_PERIOD_SECONDS))
+            notes.append(f"{context.ref.game_id} {player.name} P{period}")
+            break
+    if not adds:
+        return context, []
+    fixed = copy.copy(context)
+    fixed.shifts = list(context.shifts) + adds
+    return fixed, notes
 
 
 def _fill_situation_codes(context, timeline) -> tuple[object, list[str]]:

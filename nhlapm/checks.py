@@ -197,8 +197,43 @@ class SeasonVerdict:
         return not self.blocking
 
 
-def verify_season(season, standings_games: dict[str, int] | None) -> SeasonVerdict:
-    """League-level checks over a `store.Season`, normally one just read back."""
+def _concentration(season) -> list[str]:
+    """Where a past season's quarantined games cluster: one club or one week."""
+    import datetime
+    club_total: dict[str, int] = {}
+    club_bad: dict[str, int] = {}
+    week_total: dict[tuple, int] = {}
+    week_bad: dict[tuple, int] = {}
+    def week(date):
+        return datetime.date.fromisoformat(date).isocalendar()[:2]
+    for g in season.games.values():
+        for t in (g.away, g.home):
+            club_total[t] = club_total.get(t, 0) + 1
+        week_total[week(g.date)] = week_total.get(week(g.date), 0) + 1
+    for e in season.excluded:
+        for t in (e.away, e.home):
+            club_total[t] = club_total.get(t, 0) + 1
+            club_bad[t] = club_bad.get(t, 0) + 1
+        w = week(e.date)
+        week_total[w] = week_total.get(w, 0) + 1
+        week_bad[w] = week_bad.get(w, 0) + 1
+    out = []
+    for t, n in club_bad.items():
+        if n > config.HISTORICAL_CLUB_SHARE * club_total[t]:
+            out.append(f"{t}: {n} of {club_total[t]} games quarantined")
+    for w, n in week_bad.items():
+        if n > config.HISTORICAL_WEEK_SHARE * week_total[w]:
+            out.append(f"week {w[0]}-W{w[1]:02d}: {n} of {week_total[w]} games quarantined")
+    return out
+
+
+def verify_season(season, standings_games: dict[str, int] | None,
+                  historical: bool = False) -> SeasonVerdict:
+    """League-level checks over a `store.Season`, normally one just read back.
+
+    `historical` swaps the current season's tight gate (max(5 games, 2%)) for
+    the past-season one: block only when failures are 20%+ of the season or
+    cluster on one club or week."""
     verdict = SeasonVerdict()
     games = season.games
     rows = season.rows
@@ -206,14 +241,26 @@ def verify_season(season, standings_games: dict[str, int] | None) -> SeasonVerdi
     completed = len(games) + len(excluded)
 
     share = len(excluded) / completed if completed else 0.0
-    limit = config.quarantine_limit(completed)
-    verdict.lines.append(
-        f"games included {len(games)}, quarantined {len(excluded)} "
-        f"({share:.1%} of {completed}; limit {limit} games)")
-    if len(excluded) > limit:
-        verdict.blocking.append(
-            f"{len(excluded)} of {completed} games quarantined ({share:.1%}) -- "
-            f"above the systemic limit of {limit}")
+    if historical:
+        verdict.lines.append(
+            f"games included {len(games)}, quarantined {len(excluded)} "
+            f"({share:.1%} of {completed}; past-season limit {config.HISTORICAL_QUARANTINE_SHARE:.0%} "
+            f"and no club/week cluster)")
+        if share >= config.HISTORICAL_QUARANTINE_SHARE:
+            verdict.blocking.append(
+                f"{len(excluded)} of {completed} games quarantined ({share:.1%}) -- "
+                f"systemic: at or above {config.HISTORICAL_QUARANTINE_SHARE:.0%}")
+        for line in _concentration(season):
+            verdict.blocking.append(f"quarantined games cluster -- {line}")
+    else:
+        limit = config.quarantine_limit(completed)
+        verdict.lines.append(
+            f"games included {len(games)}, quarantined {len(excluded)} "
+            f"({share:.1%} of {completed}; limit {limit} games)")
+        if len(excluded) > limit:
+            verdict.blocking.append(
+                f"{len(excluded)} of {completed} games quarantined ({share:.1%}) -- "
+                f"above the systemic limit of {limit}")
     if not games:
         verdict.blocking.append("no games included")
         return verdict

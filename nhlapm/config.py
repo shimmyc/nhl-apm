@@ -64,6 +64,15 @@ DEFAULT_PAGE_TEAM = "CHI"       # the team the CLI defaults to
 MAX_QUARANTINE_SHARE = 0.02
 MAX_QUARANTINE_GAMES = 5
 
+# Past seasons are judged differently: their shift records were kept to a
+# looser standard and cannot be re-pulled, so a season is published with its
+# failed games left out when the failures are rare and scattered. Systemic
+# means 20% or more of the season, or any one club with a quarter of its
+# games failing, or any one week with over a third failing.
+HISTORICAL_QUARANTINE_SHARE = 0.20
+HISTORICAL_CLUB_SHARE = 0.25
+HISTORICAL_WEEK_SHARE = 0.35
+
 
 def quarantine_limit(completed: int) -> int:
     """Most quarantined games a season may have and still publish."""

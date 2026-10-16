@@ -213,7 +213,7 @@ def run_season(sid: str, args, log: Log, report: dict) -> str:
 
     season_text = store.dumps_compact(store.season_to_json(season))
     shipped = store.season_from_json(json.loads(season_text))
-    verdict = checks.verify_season(shipped, run.standings_games)
+    verdict = checks.verify_season(shipped, run.standings_games, historical=True)
     summary = fetcher.skater_season_summary(sid, fresh=False)
     pm = checks.season_plus_minus(shipped, summary, quarantined_plus_minus(fetcher, shipped),
                                   {pid: m[0] for pid, m in players.items()})
