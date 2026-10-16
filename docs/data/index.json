@@ -1,1 +1,1 @@
-{"v":1,"default":"20262027","players":"players.json","careers":"player_seasons.json","seasons":[{"id":"20262027","label":"2026-27","file":"20262027.json","updated":"2026-10-16T03:12:27Z"}]}
+{"v":1,"default":"20262027","players":"players.json","careers":"player_seasons.json","seasons":[{"id":"20262027","label":"2026-27","file":"20262027.json","updated":"2026-10-16T03:12:27Z","games":115,"quarantined":1},{"id":"20072008","label":"2007-08","file":"20072008.json","updated":"2026-10-16T12:43:57Z","games":1100,"quarantined":130}]}
