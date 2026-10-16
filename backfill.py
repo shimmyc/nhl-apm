@@ -79,9 +79,17 @@ def season_ids(first: str, last: str, fetcher: Fetcher) -> list[str]:
 
 
 def write_json(path: Path, payload) -> None:
+    # Windows can refuse the rename for a moment while an indexer or a reader
+    # has the target open; a progress file is not worth dying over.
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(payload, indent=1), encoding="utf-8")
-    tmp.replace(path)
+    for attempt in range(6):
+        try:
+            tmp.replace(path)
+            return
+        except PermissionError:
+            time.sleep(0.2 * (attempt + 1))
+    path.write_text(tmp.read_text(encoding="utf-8"), encoding="utf-8")
 
 
 def load_report() -> dict:
