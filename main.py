@@ -1,6 +1,6 @@
 """Adjusted plus-minus at 5v5 with both goalies in net, from the terminal.
 
-    python main.py                      # Blackhawks, 2026-27, computed from the feeds
+    python main.py                      # Blackhawks, current season, computed from the feeds
     python main.py --team BOS
     python main.py --league             # league-wide top/bottom from the published data
     python main.py --league --min-toi 50 --top 10
@@ -16,7 +16,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from nhlapm import aggregate, config, output, parse, pipeline, store
+from nhlapm import aggregate, config, output, parse, pipeline, seasons, store
 from nhlapm.fetch import Fetcher
 
 ROOT = Path(__file__).resolve().parent
@@ -27,7 +27,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--team", default=config.DEFAULT_PAGE_TEAM,
                         help="team abbreviation (default CHI)")
-    parser.add_argument("--season", default=config.SEASON, help="season id (default 20262027)")
+    parser.add_argument("--season", default=None,
+                        help="season id, e.g. 20262027 (default: club mode asks the NHL "
+                             "for the current season; league mode uses the site's default)")
     parser.add_argument("--cache-dir", default=str(ROOT / "cache"))
     parser.add_argument("--docs-dir", default=str(ROOT / config.DOCS_DIR))
     parser.add_argument("--out", default=None, help="CSV path for club mode")
@@ -50,7 +52,9 @@ def csv_name_for(team: str) -> str:
 
 
 def league_mode(args) -> int:
-    season = store.load_season(Path(args.docs_dir), args.season)
+    if args.season is None:
+        args.season = store.default_season(Path(args.docs_dir))
+    season = store.load_season(Path(args.docs_dir), args.season) if args.season else None
     if season is None:
         print("No published season file; run update.py first.", file=sys.stderr)
         return 1
@@ -73,6 +77,8 @@ def main(argv: list[str] | None = None) -> int:
     csv_path = Path(args.out) if args.out else ROOT / csv_name_for(team)
     fetcher = Fetcher(Path(args.cache_dir), refresh=args.refresh,
                       verbose=not args.quiet_fetch)
+    if args.season is None:
+        args.season = seasons.current_season(fetcher)
     print(f"Adjusted plus-minus | {team} | season {args.season} | 5v5, both goalies in net")
 
     games, pending = pipeline.discover_team_games(fetcher, team, args.season)

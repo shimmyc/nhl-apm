@@ -1,8 +1,10 @@
 # Adjusted plus-minus, 5v5 with both goalies in net
 
 Adjusted plus-minus for every NHL skater, from NHL public data (no key
-required). Current season `20262027`, rebuilt daily and published as a static
-page that filters and aggregates in the browser.
+required). The current season is rebuilt daily and published as a static
+page that filters and aggregates in the browser. No season id is hard-coded:
+`nhlapm/seasons.py` asks the NHL's season table, and the current season is the
+newest one whose regular season has started.
 
 ```
 python update.py                     # the daily job: new games -> verify each -> season checks -> publish
@@ -326,15 +328,23 @@ skaters without holding a man advantage, so a goal it scores does earn plus.
 05:00 once CST starts -- and from the **Run workflow** button, which also
 offers a `rebuild` switch.
 
-1. Restore the raw cache from `actions/cache` (newest key by prefix).
-2. `update.py`: walk the weekly schedule for completed games; reuse every game
+1. Detect the season (`python -m nhlapm.seasons`): the newest season in the
+   NHL's `stats/rest/en/season` table whose `startDate` is on or before
+   today (UTC). The run therefore rolls into 2027-28 on its opening day with
+   no edit; the cache key follows the season id. Through the playoffs and
+   summer the finished season stays current, and refreshing it is a no-op.
+   On opening morning, before any game is final, `update.py` reports
+   "nothing to publish" and exits 0 (tested with a simulated 2027-28 row:
+   exit 0, every published file byte-identical).
+2. Restore the raw cache from `actions/cache` (newest key by prefix).
+3. `update.py`: walk the weekly schedule for completed games; reuse every game
    already in the season file; compute and verify only new games, plus
    quarantined games, whose payloads are refetched fresh so an NHL correction
    is picked up; run the season checks; publish or block.
-3. Save the raw cache under the run's own key -- `if: always()`, so a backfill
+4. Save the raw cache under the run's own key -- `if: always()`, so a backfill
    that times out resumes where it stopped -- skipped when no game payload was
    downloaded.
-4. Commit `docs/` and the Blackhawks CSV.
+5. Commit `docs/` and the Blackhawks CSV.
 
 A no-op day costs about ten requests (schedule, standings, bios, rookies, and
 any quarantined game). Requests are throttled to about one a second, so a

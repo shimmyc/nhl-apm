@@ -23,9 +23,6 @@ permissions:
   contents: write
   actions: write   # lets the job save the raw-response cache
 
-env:
-  SEASON: "20262027"
-
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -44,6 +41,13 @@ jobs:
 
       # No dependencies to install: the tool is standard library only.
 
+      # The season is never hard-coded: the newest season whose regular season
+      # has started, per the NHL's own season table. The run rolls into a new
+      # season on its opening day, and the cache key follows it.
+      - name: Detect the current season
+        id: season
+        run: python -m nhlapm.seasons --github-output
+
       # The raw API cache (~0.5 MB a game, ~650 MB a season) is not committed.
       # It lives in the Actions cache. Keys are immutable, so each run saves
       # under its own id and restores the newest by prefix.
@@ -51,23 +55,23 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: cache
-          key: nhl-raw-${{ env.SEASON }}-${{ github.run_id }}
+          key: nhl-raw-${{ steps.season.outputs.id }}-${{ github.run_id }}
           restore-keys: |
-            nhl-raw-${{ env.SEASON }}-
+            nhl-raw-${{ steps.season.outputs.id }}-
 
       - name: Fetch, verify and build
         id: update
         # Per-game failures are quarantined and listed on the page. The step
         # fails -- leaving docs/ exactly as published -- only for systemic
         # problems: more than max(5, 2%) of games failing or a league-level identity breaking.
-        run: python update.py --quiet ${{ inputs.rebuild && '--rebuild' || '' }}
+        run: python update.py --quiet --season ${{ steps.season.outputs.id }} ${{ inputs.rebuild && '--rebuild' || '' }}
 
       - name: Save raw API cache
         if: always() && steps.update.outputs.fetched != '0'
         uses: actions/cache/save@v4
         with:
           path: cache
-          key: nhl-raw-${{ env.SEASON }}-${{ github.run_id }}
+          key: nhl-raw-${{ steps.season.outputs.id }}-${{ github.run_id }}
 
       - name: Commit processed data and page
         run: |

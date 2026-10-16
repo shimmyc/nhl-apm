@@ -25,7 +25,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from nhlapm import aggregate, checks, config, output, pipeline, site, store
+from nhlapm import aggregate, checks, config, output, pipeline, seasons, site, store
 from nhlapm.fetch import Fetcher
 
 ROOT = Path(__file__).resolve().parent
@@ -34,7 +34,9 @@ ROOT = Path(__file__).resolve().parent
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--season", default=config.SEASON)
+    parser.add_argument("--season", default=None,
+                        help="season id, e.g. 20262027 (default: the current season, "
+                             "asked of the NHL)")
     parser.add_argument("--cache-dir", default=str(ROOT / "cache"))
     parser.add_argument("--docs-dir", default=str(ROOT / config.DOCS_DIR))
     parser.add_argument("--dry-run", action="store_true",
@@ -75,9 +77,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     docs_dir = Path(args.docs_dir)
     started = datetime.now(timezone.utc)
-    print(f"nhl-apm update | season {args.season} | league-wide")
-
     fetcher = Fetcher(Path(args.cache_dir), verbose=not args.quiet)
+    if args.season is None:
+        args.season = seasons.current_season(fetcher, started.date())
+    print(f"nhl-apm update | season {args.season} | league-wide")
     previous = None if args.rebuild else store.load_season(docs_dir, args.season)
     if previous is None and not args.rebuild:
         print("  no season file yet: this run is a backfill")
@@ -88,6 +91,12 @@ def main(argv: list[str] | None = None) -> int:
                               html_fallback=not args.no_html_fallback, log=log)
     season = run.season
     season.updated = started.strftime("%Y-%m-%dT%H:%M:%SZ")
+    if not season.games and not season.excluded and previous is None:
+        # A season that has started on paper but has no final game yet (the
+        # morning of opening night). Nothing to verify or publish.
+        print(f"  no completed games yet in {args.season}; nothing to publish")
+        _github_output(published="false", fetched=fetcher.game_calls)
+        return 0
 
     players, missing = pipeline.collect_player_metadata(
         fetcher, args.season, season, store.load_players(docs_dir))

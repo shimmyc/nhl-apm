@@ -158,6 +158,10 @@ class Fetcher:
             payload = self.get(url, key, allow_cache=False)
         return payload
 
+    def seasons(self) -> dict:
+        """Every NHL season: id, regular-season start/end, scheduled games."""
+        return self.get(f"{config.BASE_API_STATS}/season", "seasons", allow_cache=False)
+
     def standings(self) -> dict:
         """Current standings: team -> conference and division."""
         return self.get(f"{config.BASE_API_WEB}/standings/now",

@@ -19,7 +19,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from nhlapm import checks, config, store
+from nhlapm import checks, config, seasons, store
 from nhlapm.fetch import Fetcher
 from nhlapm.loader import load_game_context
 from nhlapm.pipeline import discover_league_games, discover_team_games, process_game
@@ -52,7 +52,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--team", default=None, help="limit to one club's games")
-    parser.add_argument("--season", default=config.SEASON)
+    parser.add_argument("--season", default=None, help="default: the current season")
     parser.add_argument("--cache-dir", default=str(ROOT / "cache"))
     parser.add_argument("--docs-dir", default=str(ROOT / config.DOCS_DIR))
     parser.add_argument("--game", type=int, default=None, help="limit to one game id")
@@ -66,6 +66,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     fetcher = Fetcher(Path(args.cache_dir), verbose=False)
+    if args.season is None:
+        args.season = seasons.current_season(fetcher)
 
     if args.stored:
         season = store.load_season(Path(args.docs_dir), args.season)

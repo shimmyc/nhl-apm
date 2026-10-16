@@ -1,6 +1,7 @@
 """Static configuration for the adjusted plus-minus tool."""
 
-SEASON = "20262027"
+# No season id is configured: nhlapm/seasons.py asks the NHL which season is
+# current, so the daily run rolls into a new season on its own.
 TEAM = "CHI"
 
 GAME_TYPE_PRESEASON = 1

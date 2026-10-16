@@ -165,6 +165,15 @@ def season_path(docs_dir: Path, season: str) -> Path:
     return data_dir(docs_dir) / f"{season}.json"
 
 
+def default_season(docs_dir: Path) -> str | None:
+    """The season the published site opens on, read offline from the manifest."""
+    path = data_dir(docs_dir) / "index.json"
+    try:
+        return json.loads(path.read_text(encoding="utf-8")).get("default")
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
 def load_season(docs_dir: Path, season: str) -> Season | None:
     path = season_path(docs_dir, season)
     if not path.exists():
