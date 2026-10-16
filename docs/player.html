@@ -96,6 +96,7 @@ a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
     <tbody id="rows"><tr><td colspan="8" class="state">Loading&hellip;</td></tr></tbody>
   </table>
   </div>
+  <p class="prov" id="partnote"></p>
 </div>
 <footer>
   <p>Every season in the data that passed verification. A traded season shows each club, then the season total.
@@ -110,7 +111,8 @@ a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 var $ = function (id) { return document.getElementById(id); };
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
 function signed(v, d) { var r = Number(v.toFixed(d)); if (r === 0) return (0).toFixed(d); return (r > 0 ? "+" : "") + r.toFixed(d); }
-function label(id) { return id.slice(0, 4) + "-" + id.slice(6); }
+var PART = {};
+function label(id) { return id.slice(0, 4) + "-" + id.slice(6) + (PART[id] ? "†" : ""); }
 var POS = {C: "Centre", L: "Left wing", R: "Right wing", D: "Defence"};
 function getJson(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ": HTTP " + r.status); return r.json(); }); }
 function rel(gd, goff, toi, toff) { return toff ? gd - goff * (toi / toff) : null; }
@@ -120,6 +122,7 @@ var view = {seasons: []};
 window.apmPlayer = function () { return view; };
 
 getJson("data/index.json").then(function (m) {
+  m.seasons.forEach(function (s) { if (s.quarantined) PART[s.id] = s; });
   var v = "?v=" + encodeURIComponent((m.seasons[0] || {}).updated || "");
   return Promise.all([getJson("data/" + (m.careers || "player_seasons.json") + v), getJson("data/" + m.players + v)]);
 }).then(function (res) {
@@ -171,6 +174,14 @@ getJson("data/index.json").then(function (m) {
     (career.toi / 60).toFixed(1) + "</td><td>" + signed(career.pm, 0) + "</td><td>" + signed(career.gd, 0) + '</td><td class="rel">' +
     signed(career.rel, 2) + "</td><td>" + signed(career.gd - career.xm / 10000, 2) + "</td></tr>");
   $("rows").innerHTML = html.join("");
+  var partial = view.seasons.filter(function (x) { return PART[x.season]; });
+  $("partnote").innerHTML = partial.length
+    ? "† Partial season: games that failed verification are left out. " + partial.map(function (x) {
+        var e = PART[x.season];
+        return esc(label(x.season).replace("†", "") + ": " + e.games.toLocaleString() + " of " +
+          (e.games + e.quarantined).toLocaleString() + " games verified");
+      }).join("; ") + "." : "";
+  view.partial = partial.map(function (x) { return x.season; });
   view.career = {gp: career.gp, toi: career.toi / 60, pm: career.pm, gd: career.gd, rel: career.rel, adj: career.gd - career.xm / 10000};
   var tile = function (l, v) { return '<div class="tile"><span class="tlabel">' + esc(l) + '</span><span class="tval">' + esc(v) + "</span></div>"; };
   $("tiles").innerHTML = tile("Seasons", String(career.n)) + tile("Games", String(career.gp)) +

@@ -106,6 +106,7 @@ th.player, thead th:first-child { position: sticky; left: 0; z-index: 2;
   background: var(--surface); border-right: 1px solid var(--rule); }
 th.player { font-weight: 500; }
 th.player a { color: inherit; text-decoration: none; }
+.dag { color: var(--ink-3); margin-left: 2px; font-size: .8em; }
 th.player a:hover { text-decoration: underline; }
 th.player a:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .gnote { color: var(--ink-3); font-size: .74rem; margin: 0; grid-column: 1 / -1; }
@@ -165,7 +166,7 @@ footer a, .prov a { color: var(--ink-2); }
 <header>
   <h1>NHL Adjusted Plus-Minus</h1>
   <p class="sub">5-on-5 only, both goalies in net &middot; <span id="seasonLabel">2026-27</span> regular season</p>
-  <p class="stamp">Updated Thu Oct 15, 2026 at 10:12 PM CDT<span id="through"></span></p>
+  <p class="stamp">Updated Fri Oct 16, 2026 at 10:04 AM CDT<span id="through"></span></p>
 </header>
 
 <details class="filters" id="filters" open>
@@ -544,7 +545,8 @@ function computeStints() {
     var label = Object.keys(first).sort(function (a, b) { return first[a] - first[b] || (a < b ? -1 : 1); }).join("/");
     out.push({pid: p.pid, name: p.name, team: label, pos: POS_LABEL[p.pos] || p.pos, gp: gp,
               toi: toi / 60, pm: pm, gd: gdOn, nc: pm - gdOn, exp: exp, adj: gdOn - exp, rel: clubRel(club),
-              gd60: toi ? gdOn * 3600 / toi : null, sec: toi, ns: Object.keys(nseason).length});
+              gd60: toi ? gdOn * 3600 / toi : null, sec: toi, ns: Object.keys(nseason).length,
+              part: Object.keys(nseason).some(function (si) { return PARTIAL[C.seasons[si]]; })});
   }
   return out;
 }
@@ -604,7 +606,7 @@ function renderBody() {
     for (var c = 0; c < cols.length; c++) {
       var col = cols[c], rate = S.per60 && col.rate, v = value(row, col), text = fmt(v, col, rate);
       if (col.k === "name") cells.push('<th scope="row" class="txt player"><a href="player.html?id=' +
-        row.pid + '">' + text + "</a></th>");
+        row.pid + '">' + text + "</a>" + (row.part ? '<span class="dag" title="Includes a season with games left out (see the note below the table)">†</span>' : "") + "</th>");
       else if (col.hl) {
         var shown = v === null ? 0 : Number(v.toFixed(2));
         var wash = shown === 0 ? "z" : (shown > 0 ? "p" : "n");
@@ -669,13 +671,22 @@ function label(id) {
   var e = MANIFEST.seasons.filter(function (s) { return s.id === id; })[0];
   return e ? e.label : id.slice(0, 4) + "-" + id.slice(6);
 }
+var PARTIAL = {};
+function partialSeasons(ids) {
+  return MANIFEST.seasons.filter(function (s) { return s.quarantined && ids.indexOf(s.id) >= 0; });
+}
+function partialText(s) {
+  return s.label + ": " + s.games.toLocaleString() + " of " + (s.games + s.quarantined).toLocaleString() + " games verified";
+}
 function renderMeta() {
   if (multi()) {
-    var ids = rangeIds();
+    var ids = rangeIds(), part = partialSeasons(ids);
     $("through").textContent = "";
     $("prov").textContent = ids.length + " season" + (ids.length === 1 ? "" : "s") +
       " folded from season totals per player and club (data/player_seasons.json). Every game behind them " +
-      "passed the same per-game checks as the current season; games that failed are left out of their season.";
+      "passed the same per-game checks; games that failed are left out of their season." +
+      (part.length ? " † marks a player with a partial season in this view. Partial seasons — " +
+        part.map(partialText).join("; ") + "." : "");
     $("excluded").innerHTML = "";
     return;
   }
@@ -686,6 +697,8 @@ function renderMeta() {
   $("prov").textContent = D.games.length.toLocaleString() + " games included. Shift data: " +
     Object.keys(counts).sort().map(function (k) { return counts[k] + " from " + k; }).join(", ") +
     ". Every game is checked against the boxscore's published time on ice and plus-minus before it is counted.";
+  var pe = partialSeasons([S.season])[0];
+  if (pe) $("prov").textContent = partialText(pe) + ". " + $("prov").textContent;
   if (D.excluded.length) {
     $("excluded").innerHTML = '<details class="excl"><summary>' + D.excluded.length +
       " game" + (D.excluded.length === 1 ? "" : "s") + " excluded (failed verification)</summary><ul>" +
@@ -889,6 +902,7 @@ if (window.matchMedia && !window.matchMedia("(min-width: 760px)").matches) $("fi
 S = readUrl();
 getJson("data/index.json", true).then(function (m) {
   MANIFEST = m;
+  m.seasons.forEach(function (s) { if (s.quarantined) PARTIAL[s.id] = s; });
   return (multi() ? loadCareers() : load(S.season || m["default"]));
 }).then(function () {
   syncControls(); wire(); renderMeta(); refresh();
