@@ -9,3 +9,4 @@ backfill_progress.json
 backfill_report.json
 backfill_held/
 backfill.out
+backfill.lock

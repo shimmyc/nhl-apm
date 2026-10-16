@@ -53,6 +53,7 @@ LOG = ROOT / "backfill.log"
 PROGRESS = ROOT / "backfill_progress.json"
 REPORT = ROOT / "backfill_report.json"
 HELD = ROOT / "backfill_held"
+LOCK = ROOT / "backfill.lock"
 MAX_PM_MISMATCH_SHARE = 0.02    # more skaters than this disagreeing with the NHL holds a season
 
 
@@ -285,6 +286,33 @@ def publish_held(sid: str, args) -> int:
     return 0
 
 
+def _pid_alive(pid: int) -> bool:
+    if sys.platform == "win32":
+        out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"],
+                             capture_output=True, text=True).stdout
+        return str(pid) in out
+    try:
+        import os
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def take_lock() -> bool:
+    """One backfill at a time: two would double the request rate and race pushes."""
+    import os
+    try:
+        pid = int(LOCK.read_text().strip())
+        if pid != os.getpid() and _pid_alive(pid):
+            print(f"another backfill is running (pid {pid}); not starting a second one")
+            return False
+    except (OSError, ValueError):
+        pass
+    LOCK.write_text(str(os.getpid()))
+    return True
+
+
 def status() -> int:
     report = load_report()
     for sid, e in sorted(report.get("seasons", {}).items()):
@@ -325,6 +353,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.publish_held:
         return publish_held(args.publish_held, args)
 
+    if not take_lock():
+        return 1
     log = Log(LOG)
     meta = Fetcher(Path(args.cache_root), verbose=False)
     current = seasons.current_season(meta)
