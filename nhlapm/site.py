@@ -191,7 +191,7 @@ html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--page); color: var(--ink);
   font: 400 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-variant-numeric: tabular-nums; padding: 0 16px 56px; }
-.wrap { max-width: 1000px; margin: 0 auto; }
+.wrap { max-width: 1180px; margin: 0 auto; }
 header { padding: 22px 0 6px; }
 .back { font-size: .82rem; color: var(--ink-2); }
 h1 { font-size: 1.5rem; line-height: 1.2; margin: 8px 0 2px; letter-spacing: -.01em; }
@@ -217,14 +217,25 @@ svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
 .chart circle.rel { fill: var(--rel); stroke: var(--surface); stroke-width: 1.5; }
 .chart rect.pm { fill: var(--surface); stroke: var(--pm); stroke-width: 2; stroke-dasharray: none; }
 .tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
-table { border-collapse: collapse; width: 100%; font-size: .82rem; }
-th, td { padding: 7px 9px; white-space: nowrap; border-bottom: 1px solid var(--rule); text-align: right; }
-th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 980px; font-size: .82rem; }
+th, td { padding: 7px 9px; white-space: nowrap; border-bottom: 1px solid var(--rule); text-align: right; background: var(--surface); }
+th:nth-child(-n+3), td:nth-child(-n+3) { text-align: left; }
+/* The Season column stays put while the numbers scroll under it. */
+th:first-child, td:first-child { position: sticky; left: 0; z-index: 1; box-shadow: 1px 0 0 var(--rule-2); }
 thead th { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); font-weight: 650; }
+thead th:first-child { z-index: 3; }
 tr.stint td { color: var(--ink-2); }
-tr.stint td:first-child { padding-left: 20px; }
-tr.total td { font-weight: 650; }
-tr.career td { font-weight: 700; border-top: 2px solid var(--rule-2); border-bottom: 0; }
+tr.stint th { color: var(--ink-3); padding-left: 18px; }
+tr.total th, tr.total td { font-weight: 650; }
+tr.career th, tr.career td { font-weight: 700; border-top: 2px solid var(--rule-2); }
+tr.tcareer th, tr.tcareer td { color: var(--ink-2); font-weight: 600; }
+tbody th { text-align: left; font-weight: 500; background: var(--surface); padding: 7px 9px; white-space: nowrap; border-bottom: 1px solid var(--rule); position: sticky; left: 0; z-index: 1; box-shadow: 1px 0 0 var(--rule-2); }
+.ctl { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--rule-2); border-radius: 8px; overflow: hidden; }
+.seg button { font: inherit; font-size: .8rem; padding: 6px 12px; border: 0; background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--page); }
+.seg button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.hint { color: var(--ink-3); font-size: .74rem; }
 td.rel { font-weight: 650; }
 .state { padding: 22px 0; color: var(--ink-3); }
 footer { margin-top: 20px; color: var(--ink-3); font-size: .74rem; }
@@ -248,20 +259,30 @@ a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
       <span><svg width="26" height="10" aria-hidden="true"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--pm)" stroke-width="2" stroke-dasharray="5 4"/><rect x="9.5" y="1.5" width="7" height="7" fill="var(--surface)" stroke="var(--pm)" stroke-width="2"/></svg>Official_PM</span></div>
     <div id="chart"></div>
   </section>
+  <div class="ctl">
+    <div class="seg" role="group" aria-label="Show totals or per 60 minutes">
+      <button type="button" id="b-tot" aria-pressed="true">Totals</button>
+      <button type="button" id="b-60" aria-pressed="false">Per 60</button>
+    </div>
+    <span class="hint" id="hint">Scroll sideways for every column; Season stays in view.</span>
+  </div>
   <div class="tablewrap">
   <table>
     <caption class="sr-only" style="position:absolute;left:-9999px">Season by season</caption>
-    <thead><tr><th scope="col">Season</th><th scope="col">Team</th><th scope="col">GP</th><th scope="col">TOI_5v5</th>
-      <th scope="col">Official_PM</th><th scope="col">GD_on</th><th scope="col">Rel</th><th scope="col">Adjusted</th></tr></thead>
-    <tbody id="rows"><tr><td colspan="8" class="state">Loading&hellip;</td></tr></tbody>
+    <thead id="head"></thead>
+    <tbody id="rows"><tr><td colspan="13" class="state">Loading&hellip;</td></tr></tbody>
   </table>
   </div>
   <p class="prov" id="partnote"></p>
 </div>
 <footer>
-  <p>Every season in the data that passed verification. A traded season shows each club, then the season total.
+  <p>Every season in the data that passed verification. A traded season shows a TOT row, then one row per club.
   Rel for a traded season or a career is worked out per club per season and added up. Games that failed
-  verification are left out of their season, so GP can be a game or two below the official count.</p>
+  verification are left out of their season, so GP can be a game or two below the official count.
+  Age is on Feb 1 of the season's second year. NonClean is Official_PM minus GD_on (goals at other strengths).
+  Team 5v5 GD is the club's own 5-on-5 goal differential over that season's verified games, so good-team and
+  bad-team years show next to his numbers. Per 60 is per 60 minutes of his 5v5 ice time and applies to
+  Rel, GD_on, Expected and Adjusted.</p>
   <p><a id="careerlink" href="index.html?career=1">Career leaderboard</a> &middot; <a href="data/player_seasons.json">Raw data</a></p>
 </footer>
 </div>
@@ -271,7 +292,7 @@ a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 var $ = function (id) { return document.getElementById(id); };
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
 function signed(v, d) { var r = Number(v.toFixed(d)); if (r === 0) return (0).toFixed(d); return (r > 0 ? "+" : "") + r.toFixed(d); }
-var PART = {};
+var PART = {}, DEFAULT = "";
 function label(id) { return id.slice(0, 4) + "-" + id.slice(6) + (PART[id] ? "†" : ""); }
 var POS = {C: "Centre", L: "Left wing", R: "Right wing", D: "Defence"};
 function getJson(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ": HTTP " + r.status); return r.json(); }); }
@@ -282,6 +303,7 @@ var view = {seasons: []};
 window.apmPlayer = function () { return view; };
 
 getJson("data/index.json").then(function (m) {
+  DEFAULT = m["default"] || "";
   m.seasons.forEach(function (s) { if (s.quarantined) PART[s.id] = s; });
   var v = "?v=" + encodeURIComponent((m.seasons[0] || {}).updated || "");
   return Promise.all([getJson("data/" + (m.careers || "player_seasons.json") + v), getJson("data/" + m.players + v)]);
@@ -300,40 +322,140 @@ getJson("data/index.json").then(function (m) {
   $("careerlink").href = "index.html?career=1&q=" + encodeURIComponent(name) + "&min=0";
 
   // cols: s, pid, tm, gp, toi, gf, ga, pm, xm, toff, goff, rk
+  // Club 5v5 GD per season: every skater's GD_on counts a goal five times, so the sum over his club's rows is 5x the club GD.
+  var teamGd = {};
+  ps.rows.forEach(function (r) { var k = r[0] + ":" + r[2]; teamGd[k] = (teamGd[k] || 0) + (r[5] - r[6]); });
+  function stintOf(r) {
+    var gd = r[5] - r[6], exp = r[8] / 10000;
+    return {tm: r[2], gp: r[3], sec: r[4], gd: gd, pm: r[7], exp: exp, adj: gd - exp, nc: r[7] - gd,
+            rel: rel(gd, r[10], r[4], r[9]), tg: Math.round(teamGd[r[0] + ":" + r[2]] / 5)};
+  }
+  function sum(list) {
+    var t = {gp: 0, sec: 0, gd: 0, pm: 0, exp: 0, adj: 0, nc: 0, rel: null};
+    list.forEach(function (x) {
+      t.gp += x.gp; t.sec += x.sec; t.gd += x.gd; t.pm += x.pm; t.exp += x.exp; t.adj += x.adj; t.nc += x.nc;
+      if (x.rel !== null) t.rel = (t.rel || 0) + x.rel;
+    });
+    return t;
+  }
   var bySeason = {};
   mine.forEach(function (r) { (bySeason[r[0]] = bySeason[r[0]] || []).push(r); });
-  var career = {gp: 0, toi: 0, gd: 0, pm: 0, xm: 0, rel: 0, n: 0};
-  var html = [];
-  Object.keys(bySeason).map(Number).sort(function (a, b) { return a - b; }).forEach(function (si) {
-    var stints = bySeason[si], sid = ps.seasons[si];
-    var t = {gp: 0, toi: 0, gd: 0, pm: 0, xm: 0, rel: 0, any: false, teams: []};
-    stints.forEach(function (r) {
-      var gd = r[5] - r[6], rv = rel(gd, r[10], r[4], r[9]);
-      t.gp += r[3]; t.toi += r[4]; t.gd += gd; t.pm += r[7]; t.xm += r[8];
-      if (rv !== null) { t.rel += rv; t.any = true; }
-      t.teams.push(r[2]);
-      r.relv = rv;
+  var order = Object.keys(bySeason).map(Number).sort(function (a, b) { return a - b; });
+  var birth = meta && meta[3] ? new Date(meta[3] + "T00:00:00Z") : null;
+  function ageIn(sid) {
+    if (!birth) return null;
+    var ref = new Date(Date.UTC(parseInt(sid.slice(0, 4), 10) + 1, 1, 1)), a = ref.getUTCFullYear() - birth.getUTCFullYear();
+    if (ref.getTime() < Date.UTC(ref.getUTCFullYear(), birth.getUTCMonth(), birth.getUTCDate())) a--;
+    return a;
+  }
+  var seasons = [], all = [], clubs = {}, clubOrder = [];
+  order.forEach(function (si) {
+    var sid = ps.seasons[si], stints = bySeason[si].map(stintOf), t = sum(stints);
+    seasons.push({si: si, sid: sid, age: ageIn(sid), stints: stints, tot: t});
+    stints.forEach(function (x) {
+      all.push(x);
+      if (!clubs[x.tm]) { clubs[x.tm] = {list: [], seasons: {}}; clubOrder.push(x.tm); }
+      clubs[x.tm].list.push(x); clubs[x.tm].seasons[sid] = 1;
     });
-    var row = function (cls, seasonCell, team, gp, toi, pm, gd, rv, adj) {
-      return '<tr class="' + cls + '"><td>' + seasonCell + "</td><td>" + esc(team) + "</td><td>" + gp + "</td><td>" + (toi / 60).toFixed(1) +
-        "</td><td>" + signed(pm, 0) + "</td><td>" + signed(gd, 0) + '</td><td class="rel">' + (rv === null ? "--" : signed(rv, 2)) +
-        "</td><td>" + signed(adj, 2) + "</td></tr>";
-    };
-    if (stints.length > 1) {
-      stints.forEach(function (r) { html.push(row("stint", "", r[2], r[3], r[4], r[7], r[5] - r[6], r.relv, (r[5] - r[6]) - r[8] / 10000)); });
-      html.push(row("total", label(sid), t.teams.join("/"), t.gp, t.toi, t.pm, t.gd, t.any ? t.rel : null, t.gd - t.xm / 10000));
-    } else {
-      var r = stints[0];
-      html.push(row("", label(sid), r[2], r[3], r[4], r[7], r[5] - r[6], r.relv, (r[5] - r[6]) - r[8] / 10000));
-    }
-    view.seasons.push({season: sid, team: t.teams.join("/"), gp: t.gp, toi: t.toi / 60, pm: t.pm, gd: t.gd,
-                       rel: t.any ? t.rel : null, adj: t.gd - t.xm / 10000});
-    career.gp += t.gp; career.toi += t.toi; career.gd += t.gd; career.pm += t.pm; career.xm += t.xm; career.rel += t.rel; career.n++;
   });
-  html.push('<tr class="career"><td>Career</td><td>' + career.n + " season" + (career.n === 1 ? "" : "s") + "</td><td>" + career.gp + "</td><td>" +
-    (career.toi / 60).toFixed(1) + "</td><td>" + signed(career.pm, 0) + "</td><td>" + signed(career.gd, 0) + '</td><td class="rel">' +
-    signed(career.rel, 2) + "</td><td>" + signed(career.gd - career.xm / 10000, 2) + "</td></tr>");
-  $("rows").innerHTML = html.join("");
+  var career = sum(all);
+  var lastSeason = seasons[seasons.length - 1];
+  var lastTeams = lastSeason.stints.map(function (x) { return x.tm; }).join("/");
+  var isCurrent = lastSeason.sid === DEFAULT;
+  var ageNow = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
+  var bits2 = [];
+  if (meta && POS[meta[1]]) bits2.push(POS[meta[1]]);
+  if (meta && meta[2]) bits2.push("shoots " + meta[2]);
+  if (meta && meta[3]) bits2.push("born " + meta[3] + (ageNow !== null ? " (age " + ageNow + ")" : ""));
+  bits2.push((isCurrent ? "team " : "last team ") + lastTeams + (isCurrent ? "" : " (" + label(lastSeason.sid).replace("†", "") + ")"));
+  $("bio").textContent = bits2.join(" · ");
+
+  var COLS = [
+    {k: "season", h: "Season"}, {k: "age", h: "Age"}, {k: "team", h: "Team"},
+    {k: "gp", h: "GP", d: 0}, {k: "toi", h: "TOI_5v5", tip: "Minutes at 5v5 with both goalies in net"},
+    {k: "rel", h: "Rel", d: 2, s: 1, rate: 1, tip: "5v5 goal differential vs. the team with him on the bench, scaled to his minutes"},
+    {k: "pm", h: "Official_PM", d: 0, s: 1, tip: "The NHL's published plus-minus"},
+    {k: "gd", h: "GD_on", d: 0, s: 1, rate: 1, tip: "5v5 goal differential on ice"},
+    {k: "nc", h: "NonClean", d: 0, s: 1, tip: "Official_PM minus GD_on"},
+    {k: "exp", h: "Expected", d: 2, s: 1, rate: 1, tip: "Team GD in each game x his share of that game's 5v5 minutes"},
+    {k: "adj", h: "Adjusted", d: 2, s: 1, rate: 1, tip: "GD_on minus Expected"},
+    {k: "gd60", h: "GD_on/60", d: 2, s: 1, tip: "GD_on per 60 minutes of 5v5"},
+    {k: "tg", h: "Team 5v5 GD", d: 0, s: 1, tip: "The club's own 5v5 goal differential over that season's verified games"}
+  ];
+  var per60 = new URLSearchParams(location.search).get("per60") === "1";
+  function num(v, col, rate) {
+    if (v === null || v === undefined || !isFinite(v)) return "--";
+    var d = rate ? 2 : col.d, r = Number(v.toFixed(d));
+    if (r === 0) return (0).toFixed(d);
+    return (col.s && r > 0 ? "+" : "") + r.toFixed(d);
+  }
+  function cells(o) {
+    var out = [];
+    COLS.forEach(function (c) {
+      if (per60 && c.k === "gd60") return;
+      var text;
+      if (c.k === "season") text = esc(o.season);
+      else if (c.k === "age") text = o.age === null || o.age === undefined ? "" : String(o.age);
+      else if (c.k === "team") text = esc(o.team);
+      else if (c.k === "gp") text = String(o.gp);
+      else if (c.k === "toi") text = (o.sec / 60).toFixed(1);
+      else if (c.k === "gd60") text = num(o.sec ? o.gd * 3600 / o.sec : null, c);
+      else if (c.k === "tg") text = o.tg === null || o.tg === undefined ? "--" : num(o.tg, c);
+      else {
+        var v = o[c.k], rate = per60 && c.rate;
+        if (rate) v = (v === null || !o.sec) ? null : v * 3600 / o.sec;
+        text = num(v, c, rate);
+      }
+      var cls = c.k === "rel" ? ' class="rel"' : "";
+      var cell = c.k === "season" ? "th" : "td";
+      out.push("<" + cell + (cell === "th" ? ' scope="row"' : "") + cls + ">" + text + "</" + cell + ">");
+    });
+    return out.join("");
+  }
+  function renderTable() {
+    var head = COLS.filter(function (c) { return !(per60 && c.k === "gd60"); }).map(function (c) {
+      return '<th scope="col"' + (c.tip ? ' title="' + esc(c.tip) + '"' : "") + ">" + esc(c.h + (per60 && c.rate ? "/60" : "")) + "</th>";
+    }).join("");
+    $("head").innerHTML = "<tr>" + head + "</tr>";
+    var html = [];
+    function tr(cls, o) { html.push('<tr class="' + cls + '">' + cells(o) + "</tr>"); }
+    seasons.forEach(function (S) {
+      var base = label(S.sid);
+      if (S.stints.length > 1) {
+        tr("total", Object.assign({season: base, age: S.age, team: "TOT", tg: null}, S.tot));
+        S.stints.forEach(function (x) { tr("stint", Object.assign({season: base, age: S.age, team: x.tm}, x)); });
+      } else {
+        tr("", Object.assign({season: base, age: S.age, team: S.stints[0].tm}, S.stints[0]));
+      }
+    });
+    tr("career", Object.assign({season: "Career", age: null, team: seasons.length + " season" + (seasons.length === 1 ? "" : "s"), tg: null}, career));
+    if (clubOrder.length > 1) clubOrder.forEach(function (tm) {
+      var n = Object.keys(clubs[tm].seasons).length;
+      tr("tcareer", Object.assign({season: tm + " total", age: null, team: n + " season" + (n === 1 ? "" : "s"), tg: null}, sum(clubs[tm].list)));
+    });
+    $("rows").innerHTML = html.join("");
+    $("b-tot").setAttribute("aria-pressed", String(!per60));
+    $("b-60").setAttribute("aria-pressed", String(per60));
+    view.per60 = per60;
+  }
+  function setMode(on) {
+    per60 = on;
+    try {
+      var u = new URL(location.href);
+      if (on) u.searchParams.set("per60", "1"); else u.searchParams.delete("per60");
+      history.replaceState(null, "", u);
+    } catch (e) {}
+    renderTable();
+  }
+  $("b-tot").onclick = function () { setMode(false); };
+  $("b-60").onclick = function () { setMode(true); };
+  renderTable();
+
+  seasons.forEach(function (S) {
+    view.seasons.push({season: S.sid, team: S.stints.map(function (x) { return x.tm; }).join("/"), gp: S.tot.gp, toi: S.tot.sec / 60,
+                       pm: S.tot.pm, gd: S.tot.gd, rel: S.tot.rel, adj: S.tot.adj, age: S.age, nc: S.tot.nc, exp: S.tot.exp,
+                       stints: S.stints.length, tg: S.stints.length === 1 ? S.stints[0].tg : null});
+  });
   var partial = view.seasons.filter(function (x) { return PART[x.season]; });
   $("partnote").innerHTML = partial.length
     ? "† Partial season: games that failed verification are left out. " + partial.map(function (x) {
@@ -342,17 +464,19 @@ getJson("data/index.json").then(function (m) {
           (e.games + e.quarantined).toLocaleString() + " games verified");
       }).join("; ") + "." : "";
   view.partial = partial.map(function (x) { return x.season; });
-  view.career = {gp: career.gp, toi: career.toi / 60, pm: career.pm, gd: career.gd, rel: career.rel, adj: career.gd - career.xm / 10000};
+  view.clubs = clubOrder.map(function (tm) { var t = sum(clubs[tm].list); return {team: tm, gp: t.gp, pm: t.pm, rel: t.rel}; });
+  view.career = {gp: career.gp, toi: career.sec / 60, pm: career.pm, gd: career.gd, rel: career.rel || 0, adj: career.adj};
   var tile = function (l, v) { return '<div class="tile"><span class="tlabel">' + esc(l) + '</span><span class="tval">' + esc(v) + "</span></div>"; };
-  $("tiles").innerHTML = tile("Seasons", String(career.n)) + tile("Games", String(career.gp)) +
-    tile("Career Rel", signed(career.rel, 2)) + tile("Career Official_PM", signed(career.pm, 0)) +
-    tile("Career Adjusted", signed(career.gd - career.xm / 10000, 2));
+  $("tiles").innerHTML = tile("Seasons", String(seasons.length)) + tile("Games", String(career.gp)) +
+    tile("Career Rel", signed(career.rel || 0, 2)) + tile("Career Official_PM", signed(career.pm, 0)) +
+    tile("Career Adjusted", signed(career.adj, 2));
   drawChart(view.seasons);
 }).catch(function (err) {
   $("name").textContent = "Could not load the data";
   $("main").innerHTML = '<p class="state">' + esc(err && err.message || err) + "</p>";
 });
 
+function plain(id) { return label(id).replace("†", ""); }
 function drawChart(rows) {
   // Drawn at the container's real width, so 11px labels stay 11px on a phone.
   var W = Math.max(300, Math.round($("chart").clientWidth || 760)), H = W < 500 ? 240 : 300, L = 36, R = 12, T = 14, B = 46;
@@ -380,11 +504,11 @@ function drawChart(rows) {
   rows.forEach(function (r, i) {
     var cx = x(i).toFixed(1);
     out.push('<rect class="pm" x="' + (x(i) - 3.5).toFixed(1) + '" y="' + (y(r.pm) - 3.5).toFixed(1) + '" width="7" height="7"><title>' +
-      esc(label(r.season) + " " + r.team + ": Official_PM " + signed(r.pm, 0)) + "</title></rect>");
+      esc(plain(r.season) + " " + r.team + ": Official_PM " + signed(r.pm, 0)) + "</title></rect>");
     if (r.rel !== null) out.push('<circle class="rel" cx="' + cx + '" cy="' + y(r.rel).toFixed(1) + '" r="4"><title>' +
-      esc(label(r.season) + " " + r.team + ": Rel " + signed(r.rel, 2)) + "</title></circle>");
+      esc(plain(r.season) + " " + r.team + ": Rel " + signed(r.rel, 2)) + "</title></circle>");
     if (i % every === 0 || i === n - 1) {
-      out.push('<text x="' + cx + '" y="' + (H - B + 16) + '" text-anchor="middle">' + esc(label(r.season).replace(/^20/, "")) + "</text>");
+      out.push('<text x="' + cx + '" y="' + (H - B + 16) + '" text-anchor="middle">' + esc(plain(r.season).replace(/^20/, "")) + "</text>");
       out.push('<text class="tm" x="' + cx + '" y="' + (H - B + 30) + '" text-anchor="middle">' + esc(r.team) + "</text>");
     }
   });
