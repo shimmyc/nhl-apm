@@ -224,10 +224,14 @@ Seasons: one season (default the current one), a season range (from-to) or
 venue and rookie filters apply only within a single season and are hidden
 otherwise. The minimum TOI scales with the view: 0 for one team, 50 for one
 season, 50 per season for a range (capped at 500), 500 for careers. Every
-player name opens `player.html?id=...`: a season-by-season table (team, GP,
-TOI_5v5, Official_PM, GD_on, Rel, Adjusted; a traded season shows each club
-and then the total), career totals and a chart of Official_PM against Rel by
-season with team labels. The URL is the share link.
+player name opens `player.html?id=...`, laid out like Hockey Reference: a header
+(position, shoots, birthdate and age, current team), the Official_PM vs Rel chart,
+then one row per season, oldest first: Season, Age, Team, GP, TOI_5v5, Rel,
+Official_PM, GD_on, NonClean, Expected, Adjusted, GD_on/60 and the club's own 5v5
+GD that season. A traded season has a TOT row and one row per club; a bold career
+row is followed by per-club career subtotals. A Totals / Per 60 toggle (`?per60=1`)
+switches the rate columns, and on a phone the Season column stays pinned while the
+rest scrolls. The URL is the share link.
 
 A browser test against a scratch site with three seasons compared the career
 view with careers folded in Python straight from the game-level season files:
