@@ -10,3 +10,5 @@ backfill_report.json
 backfill_held/
 backfill.out
 backfill.lock
+# The SOG betting model: its own private repo, never part of this public one.
+betting/
