@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-10-17T21:40:25Z",
- "last_run_utc": "2026-10-17T21:40:25Z",
+ "generated_utc": "2026-10-17T22:40:39Z",
+ "last_run_utc": "2026-10-17T22:40:39Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-17T21:40:25Z",
+ "last_success_utc": "2026-10-17T22:40:39Z",
  "steps": {
   "odds": {
-   "at": "2026-10-17T21:40:18Z",
-   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
+   "at": "2026-10-17T22:40:24Z",
+   "detail": "morning 0 logged (0 with DK); pregame 6 logged (6 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-17T21:40:25Z"
+   "at": "2026-10-17T22:40:39Z"
   }
  },
- "last_snapshot_utc": "2026-10-17T21:40:17Z",
- "last_slate_utc": "2026-10-17T21:40:25Z",
+ "last_snapshot_utc": "2026-10-17T22:40:23Z",
+ "last_slate_utc": "2026-10-17T22:40:39Z",
  "games_today": [
   {
    "start_utc": "2026-10-17T19:40:00Z",
@@ -40,37 +40,37 @@
    "start_utc": "2026-10-17T23:10:00Z",
    "game": "New York Islanders @ Toronto Maple Leafs",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-17T23:10:00Z",
    "game": "San Jose Sharks @ Detroit Red Wings",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-17T23:10:00Z",
    "game": "New York Rangers @ Columbus Blue Jackets",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-17T23:10:00Z",
    "game": "Ottawa Senators @ Philadelphia Flyers",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-17T23:10:00Z",
    "game": "Buffalo Sabres @ Montr\u00e9al Canadiens",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-17T23:10:00Z",
    "game": "Dallas Stars @ Chicago Blackhawks",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-18T00:10:00Z",
@@ -98,13 +98,13 @@
   }
  ],
  "credits": {
-  "remaining": 484,
-  "used": 16,
-  "as_of": "2026-10-17T21:40:17Z",
+  "remaining": 478,
+  "used": 22,
+  "as_of": "2026-10-17T22:40:23Z",
   "reset": "2026-11-01",
-  "games_left": 101,
-  "needed": 190,
-  "usable": 459,
+  "games_left": 100,
+  "needed": 184,
+  "usable": 453,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
