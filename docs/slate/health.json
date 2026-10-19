@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-10-19T22:40:26Z",
- "last_run_utc": "2026-10-19T22:40:26Z",
+ "generated_utc": "2026-10-19T23:20:21Z",
+ "last_run_utc": "2026-10-19T23:20:21Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-19T22:40:26Z",
+ "last_success_utc": "2026-10-19T23:20:21Z",
  "steps": {
   "odds": {
-   "at": "2026-10-19T22:40:18Z",
-   "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
+   "at": "2026-10-19T23:20:15Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-19T22:40:26Z"
+   "at": "2026-10-19T23:20:21Z"
   }
  },
- "last_snapshot_utc": "2026-10-19T22:40:17Z",
- "last_slate_utc": "2026-10-19T22:40:26Z",
+ "last_snapshot_utc": "2026-10-19T23:20:14Z",
+ "last_slate_utc": "2026-10-19T23:20:21Z",
  "games_today": [
   {
    "start_utc": "2026-10-19T23:10:00Z",
@@ -34,7 +34,7 @@
    "start_utc": "2026-10-19T23:40:00Z",
    "game": "San Jose Sharks @ Toronto Maple Leafs",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-20T01:10:00Z",
@@ -44,13 +44,13 @@
   }
  ],
  "credits": {
-  "remaining": 464,
-  "used": 36,
-  "as_of": "2026-10-19T22:40:17Z",
+  "remaining": 463,
+  "used": 37,
+  "as_of": "2026-10-19T23:20:14Z",
   "reset": "2026-11-01",
-  "games_left": 88,
-  "needed": 170,
-  "usable": 439,
+  "games_left": 86,
+  "needed": 169,
+  "usable": 438,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
