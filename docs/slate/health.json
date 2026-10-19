@@ -1,17 +1,27 @@
 {
- "generated_utc": "2026-10-19T20:00:19Z",
- "last_run_utc": "2026-10-19T20:00:19Z",
+ "generated_utc": "2026-10-19T21:00:28Z",
+ "last_run_utc": "2026-10-19T21:00:28Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-19T20:00:19Z",
+ "last_success_utc": "2026-10-19T21:00:28Z",
  "steps": {
   "odds": {
-   "at": "2026-10-19T20:00:19Z",
+   "at": "2026-10-19T21:00:21Z",
    "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
+  },
+  "recheck": {
+   "at": "2026-10-19T21:00:28Z",
+   "detail": "recheck: 1 boxscores re-fetched, 0 changed, 0 rows re-graded, 0 results flipped",
+   "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-10-19T21:00:28Z"
   }
  },
  "last_snapshot_utc": "2026-10-19T15:00:24Z",
- "last_slate_utc": "2026-10-19T19:00:29Z",
+ "last_slate_utc": "2026-10-19T21:00:28Z",
  "games_today": [
   {
    "start_utc": "2026-10-19T23:10:00Z",
