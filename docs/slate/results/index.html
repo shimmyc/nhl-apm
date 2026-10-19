@@ -84,6 +84,8 @@ details.fee .menu label { display: flex; justify-content: space-between; align-i
   padding: 3px 0; color: var(--text-primary); white-space: normal; }
 details.fee .menu label.chk { justify-content: flex-start; gap: 0; }
 details.fee .menu input[type=number] { width: 5.4em; text-align: right; flex: none; }
+details.fee .menu .fee-h { margin: 8px 0 2px; font-weight: 600; color: var(--text-primary); }
+details.fee .menu .fee-books { max-height: 13em; overflow-y: auto; padding-right: 2px; }
 details.fee .menu p { margin: 6px 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
 tr.feebad td { color: var(--muted); }
 
@@ -168,14 +170,16 @@ svg .colhit:focus + path, svg .colhit:hover + path { stroke: var(--text-primary)
   <label>Player<input type="search" id="f-q" placeholder="name" list="dl-players" autocomplete="off"></label>
   <datalist id="dl-players"></datalist>
   <button class="btn" type="button" id="f-reset">Reset</button>
-  <details class="fee" id="fee"><summary id="fee-label">Fee</summary><div class="menu" id="fee-menu">
+  <details class="fee" id="fee"><summary id="fee-label">Fees</summary><div class="menu" id="fee-menu">
     <label class="chk"><input type="checkbox" id="fee-on">Charge a fee per bet</label>
-    <label>Fee per bet ($)<input class="field num" type="number" id="fee-amt" min="0" step="0.05" inputmode="decimal"></label>
-    <label>Unit size ($)<input class="field num" type="number" id="fee-unit" min="1" step="5" inputmode="decimal"></label>
+    <label>Unit size ($)<input class="field num" type="number" id="fee-unit" min="1" step="1" inputmode="decimal"></label>
     <label>Max fee share of expected profit (%)<input class="field num" type="number" id="fee-share" min="1" max="100" step="5" inputmode="decimal"></label>
-    <p>Min stake = fee &divide; (EV &times; max share): the smallest bet at which the fee takes no more than that share of the
-      expected profit. While on, EV and results are shown net of one fee per bet at your unit (one per parlay; a void is
-      assumed refunded). Paper pick selection ignores it. Kept in this browser.</p>
+    <div class="fee-h">Fee per bet, by book ($)</div>
+    <div class="fee-books" id="fee-books"></div>
+    <p>A line uses the fee of the selected book with the best price (on a tie, the cheaper fee). Min stake = that fee
+      &divide; (EV &times; max share): the smallest bet at which the fee takes no more than that share of the expected
+      profit. While on, EV and results are net of one fee per bet at your unit, a void included (one per parlay).
+      Paper pick selection ignores it. Kept in this browser.</p>
   </div></details>
 </div>
 <div class="tiles" id="tiles"></div>
@@ -211,44 +215,64 @@ const longDate = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-US", {
 const mean = (xs) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
 const H = D.history || { dates: [], teams: [], skaters: {}, goalies: {} };
 
-// -- fee settings (kept in this browser; the slate and results pages share them) ------
-const FEE_DEFAULT = { on: true, fee: 0.5, unit: 50, share: 0.25 };
-const FEE = { ...FEE_DEFAULT };
+// -- fees by book (kept in this browser; the slate and results pages share them) ------
+// Every bet pays its book's fee whatever happens, a void included.
+const FEE_BOOKS = { draftkings: 0.5, fanduel: 0.5, fanatics: 0.25 };   // every other book: $0
+const FEE = { on: true, unit: 5, share: 0.25, books: { ...FEE_BOOKS } };
 try {
-  const s = JSON.parse(localStorage.getItem("slate.fee") || "null") || {};
+  localStorage.removeItem("slate.fee");   // the one-fee version's settings
+  const s = JSON.parse(localStorage.getItem("slate.fees") || "null") || {};
   if (typeof s.on === "boolean") FEE.on = s.on;
-  if (isFinite(s.fee) && s.fee >= 0) FEE.fee = +s.fee;
   if (isFinite(s.unit) && s.unit > 0) FEE.unit = +s.unit;
   if (isFinite(s.share) && s.share > 0 && s.share <= 1) FEE.share = +s.share;
+  if (s.books && typeof s.books === "object")
+    for (const [b, v] of Object.entries(s.books)) if (isFinite(v) && v >= 0) FEE.books[b] = +v;
 } catch (e) {}
-const feeActive = () => FEE.on && FEE.fee > 0;
-// The fee in units (fraction of a stake): what each bet's EV and result lose while it is on.
-const feeU = () => feeActive() ? FEE.fee / FEE.unit : 0;
-// Smallest stake at which the fee is at most FEE.share of expected profit; ev is before the fee.
-const minStake = (ev) => !feeActive() ? 0 : ev > 0 ? FEE.fee / (ev * FEE.share) : Infinity;
-const feeOk = (ev) => minStake(ev) <= FEE.unit * (1 + 1e-9);   // an EV exactly at the break-even passes
-const dollars = (x) => "$" + (x >= 100 ? Math.round(x).toLocaleString("en-US") : x.toFixed(x < 10 ? 2 : 0));
+const bookFee = (b) => FEE.on ? FEE.books[b] || 0 : 0;
+const feeActive = () => FEE.on && Object.values(FEE.books).some(v => v > 0);
+// A book's fee in units (fraction of a stake): what each bet's EV and result lose.
+const feeU = (b) => bookFee(b) / FEE.unit;
+// Smallest stake at which b's fee is at most FEE.share of expected profit; ev is before the fee.
+const minStake = (ev, b) => { const f = bookFee(b); return f <= 0 ? 0 : ev > 0 ? f / (ev * FEE.share) : Infinity; };
+const feeOk = (ev, b) => minStake(ev, b) <= FEE.unit * (1 + 1e-9);   // an EV exactly at the break-even passes
+const dollars = (x) => "$" + (x >= 100 || Number.isInteger(x) ? Math.round(x).toLocaleString("en-US") : x.toFixed(x < 10 ? 2 : 0));
 // Rounded up to a whole dollar: it is a floor.
-const minStakeS = (ev) => ev == null || isNaN(ev) ? "–" : ev <= 0 ? "no edge" : "$" + Math.max(1, Math.ceil(minStake(ev) - 1e-6)).toLocaleString("en-US");
-const feeSentence = () => `net of a ${dollars(FEE.fee)} fee per bet at your ${dollars(FEE.unit)} unit (${(feeU() * 100).toFixed(1)}% of a stake)`;
-function feeUI(onChange) {
-  const on = $("fee-on"), amt = $("fee-amt"), unit = $("fee-unit"), share = $("fee-share"), box = $("fee");
+const minStakeS = (ev, b) => ev == null || isNaN(ev) ? "–" : ev <= 0 ? "no edge" : bookFee(b) <= 0 ? "no fee" :
+  "$" + Math.max(1, Math.ceil(minStake(ev, b) - 1e-6)).toLocaleString("en-US");
+// "DraftKings $0.50, FanDuel $0.50, Fanatics $0.25" (books with a fee, dearest first).
+const feeList = (nameOf) => Object.entries(FEE.books).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+  .map(([b, v]) => `${nameOf(b)} ${dollars(v)}`).join(", ") || "none";
+const feeSentence = (b, name) => `net of ${name}'s ${dollars(bookFee(b))} fee per bet at your ${dollars(FEE.unit)} unit (${(feeU(b) * 100).toFixed(1)}% of a stake)`;
+// books: extra books to list (the slate's); nameOf: display names.
+function feeUI(onChange, books, nameOf) {
+  const on = $("fee-on"), unit = $("fee-unit"), share = $("fee-share"), box = $("fee"), host = $("fee-books");
+  const list = [...new Set([...Object.keys(FEE_BOOKS), ...Object.keys(FEE.books), ...books])]
+    .sort((a, b) => (FEE_BOOKS[b] || 0) - (FEE_BOOKS[a] || 0) || nameOf(a).localeCompare(nameOf(b)));
+  const inputs = {};
+  for (const b of list) {
+    const i = document.createElement("input");
+    Object.assign(i, { className: "field num", type: "number", min: "0", step: "0.05", inputMode: "decimal" });
+    i.setAttribute("aria-label", `${nameOf(b)} fee per bet`);
+    const l = document.createElement("label"); l.append(nameOf(b), i); host.appendChild(l);
+    inputs[b] = i;
+  }
   const sync = () => {
-    on.checked = FEE.on; amt.value = FEE.fee.toFixed(2); unit.value = FEE.unit; share.value = Math.round(FEE.share * 100);
-    for (const i of [amt, unit, share]) i.disabled = !FEE.on;
-    $("fee-label").textContent = (FEE.on ? `Fee ${dollars(FEE.fee)} · unit ${dollars(FEE.unit)} · ${Math.round(FEE.share * 100)}%` : "Fee: off") + " ▾";
+    on.checked = FEE.on; unit.value = FEE.unit; share.value = Math.round(FEE.share * 100);
+    for (const [b, i] of Object.entries(inputs)) { i.value = (FEE.books[b] || 0).toFixed(2); i.disabled = !FEE.on; }
+    unit.disabled = share.disabled = !FEE.on;
+    $("fee-label").textContent = (FEE.on ? `Fees by book · unit ${dollars(FEE.unit)} · ${Math.round(FEE.share * 100)}%` : "Fees: off") + " ▾";
   };
   const read = () => {
     const n = (i, lo, hi) => { const v = parseFloat(i.value); return isFinite(v) && v >= lo && v <= hi ? v : null; };
     FEE.on = on.checked;
-    const f = n(amt, 0, 1e6), u = n(unit, 0.01, 1e9), s = n(share, 0.1, 100);
-    if (f !== null) FEE.fee = f;
+    const u = n(unit, 0.01, 1e9), s = n(share, 0.1, 100);
     if (u !== null) FEE.unit = u;
     if (s !== null) FEE.share = s / 100;
-    try { localStorage.setItem("slate.fee", JSON.stringify(FEE)); } catch (e) {}
+    for (const [b, i] of Object.entries(inputs)) { const v = n(i, 0, 1e6); if (v !== null) FEE.books[b] = v; }
+    try { localStorage.setItem("slate.fees", JSON.stringify(FEE)); } catch (e) {}
     sync(); onChange();
   };
-  for (const i of [on, amt, unit, share]) i.addEventListener("change", read);
+  for (const i of [on, unit, share, ...Object.values(inputs)]) i.addEventListener("change", read);
   // Keep the open menu on screen on a phone.
   box.addEventListener("toggle", () => {
     const m = $("fee-menu"); m.style.left = "0px";
@@ -268,14 +292,22 @@ const SOG = { picks: decode(D.sog_cols, D.picks, o => ({ name: D.players[o.p] ||
               all: decode(D.sog_cols, D.lines, o => ({ name: D.players[o.p] || String(o.p) })) };
 const GK = decode(D.goalie_cols, D.goalies, o => ({ name: D.goalie_names[o.p] || String(o.p) }));
 const graded = (r) => r.res === "W" || r.res === "L" || r.res === "P";
+// Settled = graded or void: a void still pays the fee.
+const settled = (r) => graded(r) || r.res === "V";
+// Every line here is at BOOK's price, so its fee applies throughout.
+const BOOK = D.book || "draftkings", BOOK_LABEL = { draftkings: "DraftKings", fanduel: "FanDuel", fanatics: "Fanatics" };
+const feeName = (b) => BOOK_LABEL[b] || b;
+const feeOn = () => bookFee(BOOK) > 0;
 // EV and units net of the fee (ev0 / pl0 keep the logged values), and the fee rule
-// on the EV before the fee. One fee per graded line; voids and pending carry none.
+// on the EV before the fee. One fee per settled line, a void included; xu is a
+// line's expected units (a void's is just the fee).
 for (const r of [...SOG.picks, ...SOG.all]) { r.ev0 = r.ev; r.pl0 = r.pl; }
 function applyFee() {
-  const c = feeU();
+  const c = feeU(BOOK);
   for (const r of [...SOG.picks, ...SOG.all]) {
-    r.ev = r.ev0 - c; r.pl = r.pl0 == null ? null : graded(r) ? r.pl0 - c : r.pl0;
-    r.ms = r.ev0 > 0 ? minStake(r.ev0) : null; r.fv = feeOk(r.ev0);
+    r.ev = r.ev0 - c; r.pl = r.pl0 == null ? null : settled(r) ? r.pl0 - c : r.pl0;
+    r.xu = r.res === "V" ? -c : r.ev;
+    r.ms = r.ev0 > 0 ? minStake(r.ev0, BOOK) : null; r.fv = feeOk(r.ev0, BOOK);
   }
 }
 applyFee();
@@ -320,8 +352,8 @@ function syncControls() {
   if (document.activeElement !== $("f-q")) $("f-q").value = F.q;
   const saves = F.mkt === "saves";
   for (const x of document.querySelectorAll(".sogonly")) { x.classList.toggle("off", saves); x.querySelector("select").disabled = saves; }
-  if (!saves && !feeActive()) { $("fv-label").classList.add("off"); $("f-fv").disabled = true; }
-  $("fv-label").title = feeActive() ? "" : "The fee is off: every line passes.";
+  if (!saves && !feeOn()) { $("fv-label").classList.add("off"); $("f-fv").disabled = true; }
+  $("fv-label").title = feeOn() ? "" : "The fee is off: every line passes.";
   for (const b of $("f-ds").querySelectorAll("button")) b.disabled = saves;
   $("f-ds").classList.toggle("off", saves);
   const dl = $("dl-players"); dl.replaceChildren();
@@ -347,7 +379,7 @@ function inRange(r) {
 function sogRows() {
   const q = F.q.toLowerCase();
   return SOG[F.ds].filter(r => inRange(r) && (!F.side || r.side === F.side) && (!F.line || String(r.line) === F.line) &&
-    (!F.ev || evBucket(r.ev0) === F.ev) && (!F.fv || !feeActive() || (F.fv === "pass") === r.fv) &&
+    (!F.ev || evBucket(r.ev0) === F.ev) && (!F.fv || !feeOn() || (F.fv === "pass") === r.fv) &&
     (!F.team || r.team === F.team) && (!F.opp || r.opp === F.opp) &&
     (!q || r.name.toLowerCase().includes(q)));
 }
@@ -360,8 +392,9 @@ function goalieRows() {
 // -- aggregates -----------------------------------------------------------------------
 function agg(rows) {
   const g = rows.filter(graded), clv = rows.filter(r => r.clv != null), mv = rows.filter(r => r.mv);
-  const wins = g.filter(r => r.res === "W").length;
-  const u = g.reduce((a, r) => a + r.pl, 0), e = g.reduce((a, r) => a + r.ev, 0);
+  const wins = g.filter(r => r.res === "W").length, st = rows.filter(settled);
+  // Units include a void's fee; ROI stays per graded bet.
+  const u = st.reduce((a, r) => a + r.pl, 0), e = st.reduce((a, r) => a + (r.xu ?? r.ev), 0);
   return { n: rows.length, graded: g.length, wins, losses: g.filter(r => r.res === "L").length,
     pushes: g.filter(r => r.res === "P").length, voids: rows.filter(r => r.res === "V").length,
     units: u, exp_units: e, roi: g.length ? u / g.length : null, exp_roi: g.length ? e / g.length : null,
@@ -607,20 +640,20 @@ function draw() {
       `Anything under ${MIN_N} is greyed: it is noise.`
     : `Every two-sided DraftKings line on a projected skater since ${longDate(D.first_day)}, on the side with the higher EV at DraftKings' price, from the snapshot a pick would use; ` +
       `picks are a subset. Most lines have negative EV, so "all lines" ROI is mostly the vig: read it for calibration, the Under lean and CLV, not as a strategy. Anything under ${MIN_N} is greyed.`;
-  if (feeActive()) $("lede").textContent += ` EV, expected and units are ${feeSentence()}: one fee per graded line, a void assumed refunded. ` +
+  if (feeOn()) $("lede").textContent += ` EV, expected and units are ${feeSentence(BOOK, feeName(BOOK))}: one fee per line, a void included. ` +
     `The fee rule passes a line when its min stake (fee ÷ (EV before the fee × ${Math.round(FEE.share * 100)}%)) is within your unit; EV buckets use EV before the fee.`;
   tile("Graded " + dsName, String(a.graded), `${a.wins}–${a.losses}–${a.pushes}` + (a.voids ? `, ${a.voids} void` : "") + (a.n > a.graded + a.voids ? `, ${a.n - a.graded - a.voids} pending` : ""));
-  tile(feeActive() ? "Units, net of fee" : "Units", units(a.units), `expected ${units(a.exp_units)} · ${a.units >= 0 ? "+" : "−"}$${Math.round(Math.abs(a.units * FEE.unit)).toLocaleString("en-US")} at ${dollars(FEE.unit)}`);
+  tile(feeOn() ? "Units, net of fee" : "Units", units(a.units), `expected ${units(a.exp_units)} · ${a.units >= 0 ? "+" : "−"}$${Math.round(Math.abs(a.units * FEE.unit)).toLocaleString("en-US")} at ${dollars(FEE.unit)}`);
   tile("ROI", signed(a.roi), `expected ${signed(a.exp_roi)}`);
   tile("Hit rate", pct(a.hit), `model ${pct(a.exp_hit)}`);
   tile("Avg CLV", pts(a.clv, 2), `${a.clv_n} with a close · price CLV ${signed(a.clve)}`);
   tile("Line moved our way", pct(a.ours, 0), `of ${a.mv_n} with a close`);
-  if (feeActive()) tile("Pass the fee rule", pct(rows.length ? rows.filter(r => r.fv).length / rows.length : null, 0),
+  if (feeOn()) tile("Pass the fee rule", pct(rows.length ? rows.filter(r => r.fv).length / rows.length : null, 0),
     `${rows.filter(r => r.fv).length} of ${rows.length} at ${dollars(FEE.unit)}, ${Math.round(FEE.share * 100)}% share`);
   drawPlayer(rows);
 
   const ch = $("charts");
-  const days = byDay(g);
+  const days = byDay(rows.filter(settled));
   const dl = days.map(d => d[0]), dn = days.map(d => d[1].length);
   // a) cumulative units, actual vs expected
   {
@@ -628,7 +661,7 @@ function draw() {
       g.length, [["ln", "var(--series-1)", "actual"], ["dl", "var(--text-secondary)", "expected (sum of EV)"]], { nLabel: "graded" });
     if (!days.length) emptyNote(plot, "Nothing graded in this selection.");
     else { let u = 0, e = 0; const act = [], exp = [];
-      for (const [, rs] of days) { u += rs.reduce((s, r) => s + r.pl, 0); e += rs.reduce((s, r) => s + r.ev, 0); act.push(u); exp.push(e); }
+      for (const [, rs] of days) { u += rs.reduce((s, r) => s + r.pl, 0); e += rs.reduce((s, r) => s + r.xu, 0); act.push(u); exp.push(e); }
       lineChart(plot, dl, [{ label: "actual", color: "var(--series-1)", vals: act }, { label: "expected", color: "var(--text-secondary)", dash: true, vals: exp }],
         { fmt: units, ns: dn.map((_, i) => dn.slice(0, i + 1).reduce((s, v) => s + v, 0)), label: "Cumulative units, actual and expected, by day" }); }
   }
@@ -788,9 +821,9 @@ function columns(goalie) {
   return [
     ["Date", "day", r => r.day], ["Player", "name", r => r.name], ["Game", "team", r => `${r.team} v ${r.opp}`],
     ["Line", "line", r => r.line], ["Side", "side", r => r.side === "O" ? "Over" : "Under"], ["Price", "price", r => priceS(r.price)],
-    ["Model P", "mp", r => pct(r.mp)], ["Fair P", "fp", r => pct(r.fp)], [feeActive() ? "EV, net" : "EV", "ev", r => signed(r.ev)],
-    ...(feeActive() ? [["Min stake", "ms", r => minStakeS(r.ev0)]] : []), ["Proj", "exp", r => r.exp.toFixed(2)],
-    ["SOG", "act", r => r.act ?? ""], ["Result", "res", r => r.res ? RES[r.res] : "pending"], [feeActive() ? "Units, net" : "Units", "pl", r => r.pl == null ? "" : units(r.pl)],
+    ["Model P", "mp", r => pct(r.mp)], ["Fair P", "fp", r => pct(r.fp)], [feeOn() ? "EV, net" : "EV", "ev", r => signed(r.ev)],
+    ...(feeOn() ? [["Min stake", "ms", r => minStakeS(r.ev0, BOOK)]] : []), ["Proj", "exp", r => r.exp.toFixed(2)],
+    ["SOG", "act", r => r.act ?? ""], ["Result", "res", r => r.res ? RES[r.res] : "pending"], [feeOn() ? "Units, net" : "Units", "pl", r => r.pl == null ? "" : units(r.pl)],
     ["Close", "close", r => r.close == null ? (r.note || "") : priceS(r.close)], ["CLV", "clv", r => r.clv == null ? "" : pts(r.clv)], ["Price CLV", "clve", r => r.clve == null ? "" : signed(r.clve)],
     ...(F.ds === "all" ? [["Pick", "pick", r => r.pick ? "pick" : ""]] : []), ["Flagged", "flag", r => r.flag ? "yes" : ""]];
 }
@@ -833,7 +866,7 @@ function downloadCsv(rows, goalie) {
        ["projected_sog", r => r.exp], ["actual_sog", r => r.act ?? ""], ["result", r => r.res ? RES[r.res] : ""], ["units", r => r.pl0 ?? ""],
        ["close_price", r => r.close ?? ""], ["clv_p", r => r.clv ?? ""], ["clv_ev", r => r.clve ?? ""], ["moved", r => ({ o: "ours", a: "against", f: "flat" })[r.mv] || ""],
        ["clv_note", r => r.note || ""], ["pick", r => r.pick], ["flagged", r => r.flag],
-       ...(feeActive() ? [["fee_units", () => +feeU().toFixed(4)], ["ev_net", r => +r.ev.toFixed(4)], ["units_net", r => r.pl == null ? "" : +r.pl.toFixed(4)],
+       ...(feeOn() ? [["fee_units", () => +feeU(BOOK).toFixed(4)], ["ev_net", r => +r.ev.toFixed(4)], ["units_net", r => r.pl == null ? "" : +r.pl.toFixed(4)],
          ["min_stake", r => r.ms == null ? "" : +r.ms.toFixed(2)], ["fee_viable", r => r.fv ? 1 : 0]] : [])];
   const q = (v) => { const s = String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const text = [fields.map(f => f[0]).join(","), ...rows.map(r => fields.map(f => q(f[1](r))).join(","))].join("\n");
@@ -899,7 +932,7 @@ function barChart(host, games, val, line, goalie) {
 }
 
 
-feeUI(() => { applyFee(); syncControls(); draw(); });
+feeUI(() => { applyFee(); syncControls(); draw(); }, [], feeName);
 readHash(); syncControls(); draw();
 // Redraw at the new width only (phones fire resize on scroll as the toolbar hides).
 let rt, lastW = innerWidth;
