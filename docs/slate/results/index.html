@@ -73,6 +73,20 @@ th { color: var(--text-secondary); font-weight: 600; }
   margin: 4px 0 12px; align-items: center; }
 .key i { display: inline-block; vertical-align: middle; margin-right: 6px; }
 
+details.fee { position: relative; color: var(--text-secondary); font-size: 13px; }
+details.fee summary { list-style: none; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
+  background: var(--surface-1); padding: 4px 8px; color: var(--text-primary); font-size: 13px; white-space: nowrap; }
+details.fee summary::-webkit-details-marker { display: none; }
+details.fee .menu { position: absolute; left: 0; z-index: 4; margin-top: 4px; background: var(--surface-1);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; width: min(20em, calc(100vw - 32px));
+  box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+details.fee .menu label { display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 3px 0; color: var(--text-primary); white-space: normal; }
+details.fee .menu label.chk { justify-content: flex-start; gap: 0; }
+details.fee .menu input[type=number] { width: 5.4em; text-align: right; flex: none; }
+details.fee .menu p { margin: 6px 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+tr.feebad td { color: var(--muted); }
+
 :root { --s2: #eb6834; --s3: #1baf7a; --good: #0ca30c; --bad: #d03b3b; --hit: #2a78d6; --miss: #eb6834; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --s2: #d95926; --s3: #199e70; --hit: #3987e5; --miss: #d95926; } }
 :root[data-theme="dark"] { --s2: #d95926; --s3: #199e70; --hit: #3987e5; --miss: #d95926; }
@@ -148,11 +162,21 @@ svg .colhit:focus + path, svg .colhit:hover + path { stroke: var(--text-primary)
   <label class="sogonly">Side<select id="f-side"><option value="">all</option><option value="O">Over</option><option value="U">Under</option></select></label>
   <label class="sogonly">Line<select id="f-line"><option value="">all</option></select></label>
   <label class="sogonly">EV<select id="f-ev"><option value="">all</option></select></label>
+  <label class="sogonly" id="fv-label">Fee rule<select id="f-fv"><option value="">all</option><option value="pass">passes at my unit</option><option value="fail">fails at my unit</option></select></label>
   <label>Team<select id="f-team"><option value="">all</option></select></label>
   <label>Opp<select id="f-opp"><option value="">all</option></select></label>
   <label>Player<input type="search" id="f-q" placeholder="name" list="dl-players" autocomplete="off"></label>
   <datalist id="dl-players"></datalist>
   <button class="btn" type="button" id="f-reset">Reset</button>
+  <details class="fee" id="fee"><summary id="fee-label">Fee</summary><div class="menu" id="fee-menu">
+    <label class="chk"><input type="checkbox" id="fee-on">Charge a fee per bet</label>
+    <label>Fee per bet ($)<input class="field num" type="number" id="fee-amt" min="0" step="0.05" inputmode="decimal"></label>
+    <label>Unit size ($)<input class="field num" type="number" id="fee-unit" min="1" step="5" inputmode="decimal"></label>
+    <label>Max fee share of expected profit (%)<input class="field num" type="number" id="fee-share" min="1" max="100" step="5" inputmode="decimal"></label>
+    <p>Min stake = fee &divide; (EV &times; max share): the smallest bet at which the fee takes no more than that share of the
+      expected profit. While on, EV and results are shown net of one fee per bet at your unit (one per parlay; a void is
+      assumed refunded). Paper pick selection ignores it. Kept in this browser.</p>
+  </div></details>
 </div>
 <div class="tiles" id="tiles"></div>
 <div id="player"></div>
@@ -187,6 +211,56 @@ const longDate = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-US", {
 const mean = (xs) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
 const H = D.history || { dates: [], teams: [], skaters: {}, goalies: {} };
 
+// -- fee settings (kept in this browser; the slate and results pages share them) ------
+const FEE_DEFAULT = { on: true, fee: 0.5, unit: 50, share: 0.25 };
+const FEE = { ...FEE_DEFAULT };
+try {
+  const s = JSON.parse(localStorage.getItem("slate.fee") || "null") || {};
+  if (typeof s.on === "boolean") FEE.on = s.on;
+  if (isFinite(s.fee) && s.fee >= 0) FEE.fee = +s.fee;
+  if (isFinite(s.unit) && s.unit > 0) FEE.unit = +s.unit;
+  if (isFinite(s.share) && s.share > 0 && s.share <= 1) FEE.share = +s.share;
+} catch (e) {}
+const feeActive = () => FEE.on && FEE.fee > 0;
+// The fee in units (fraction of a stake): what each bet's EV and result lose while it is on.
+const feeU = () => feeActive() ? FEE.fee / FEE.unit : 0;
+// Smallest stake at which the fee is at most FEE.share of expected profit; ev is before the fee.
+const minStake = (ev) => !feeActive() ? 0 : ev > 0 ? FEE.fee / (ev * FEE.share) : Infinity;
+const feeOk = (ev) => minStake(ev) <= FEE.unit * (1 + 1e-9);   // an EV exactly at the break-even passes
+const dollars = (x) => "$" + (x >= 100 ? Math.round(x).toLocaleString("en-US") : x.toFixed(x < 10 ? 2 : 0));
+// Rounded up to a whole dollar: it is a floor.
+const minStakeS = (ev) => ev == null || isNaN(ev) ? "–" : ev <= 0 ? "no edge" : "$" + Math.max(1, Math.ceil(minStake(ev) - 1e-6)).toLocaleString("en-US");
+const feeSentence = () => `net of a ${dollars(FEE.fee)} fee per bet at your ${dollars(FEE.unit)} unit (${(feeU() * 100).toFixed(1)}% of a stake)`;
+function feeUI(onChange) {
+  const on = $("fee-on"), amt = $("fee-amt"), unit = $("fee-unit"), share = $("fee-share"), box = $("fee");
+  const sync = () => {
+    on.checked = FEE.on; amt.value = FEE.fee.toFixed(2); unit.value = FEE.unit; share.value = Math.round(FEE.share * 100);
+    for (const i of [amt, unit, share]) i.disabled = !FEE.on;
+    $("fee-label").textContent = (FEE.on ? `Fee ${dollars(FEE.fee)} · unit ${dollars(FEE.unit)} · ${Math.round(FEE.share * 100)}%` : "Fee: off") + " ▾";
+  };
+  const read = () => {
+    const n = (i, lo, hi) => { const v = parseFloat(i.value); return isFinite(v) && v >= lo && v <= hi ? v : null; };
+    FEE.on = on.checked;
+    const f = n(amt, 0, 1e6), u = n(unit, 0.01, 1e9), s = n(share, 0.1, 100);
+    if (f !== null) FEE.fee = f;
+    if (u !== null) FEE.unit = u;
+    if (s !== null) FEE.share = s / 100;
+    try { localStorage.setItem("slate.fee", JSON.stringify(FEE)); } catch (e) {}
+    sync(); onChange();
+  };
+  for (const i of [on, amt, unit, share]) i.addEventListener("change", read);
+  // Keep the open menu on screen on a phone.
+  box.addEventListener("toggle", () => {
+    const m = $("fee-menu"); m.style.left = "0px";
+    // clientWidth, not innerWidth: a phone widens innerWidth to fit the overflowing menu.
+    if (box.open) { const W = document.documentElement.clientWidth, r = m.getBoundingClientRect();
+      if (r.right > W - 8) m.style.left = Math.min(0, W - 8 - r.right) + "px"; }
+  });
+  document.addEventListener("click", (e) => { if (!box.contains(e.target)) box.open = false; });
+  sync();
+}
+
+
 // Rows as objects: arrays in the payload, decoded once.
 const decode = (cols, rows, extra) => rows.map(r => { const o = {}; cols.forEach((c, i) => o[c] = r[i]); o.day = D.days[o.d];
   o.team = D.teams[o.t]; o.opp = D.teams[o.o]; Object.assign(o, extra(o)); return o; });
@@ -194,13 +268,24 @@ const SOG = { picks: decode(D.sog_cols, D.picks, o => ({ name: D.players[o.p] ||
               all: decode(D.sog_cols, D.lines, o => ({ name: D.players[o.p] || String(o.p) })) };
 const GK = decode(D.goalie_cols, D.goalies, o => ({ name: D.goalie_names[o.p] || String(o.p) }));
 const graded = (r) => r.res === "W" || r.res === "L" || r.res === "P";
+// EV and units net of the fee (ev0 / pl0 keep the logged values), and the fee rule
+// on the EV before the fee. One fee per graded line; voids and pending carry none.
+for (const r of [...SOG.picks, ...SOG.all]) { r.ev0 = r.ev; r.pl0 = r.pl; }
+function applyFee() {
+  const c = feeU();
+  for (const r of [...SOG.picks, ...SOG.all]) {
+    r.ev = r.ev0 - c; r.pl = r.pl0 == null ? null : graded(r) ? r.pl0 - c : r.pl0;
+    r.ms = r.ev0 > 0 ? minStake(r.ev0) : null; r.fv = feeOk(r.ev0);
+  }
+}
+applyFee();
 
 const EV_BUCKETS = [["neg", "below 0", -9, 0], ["0-3", "0–3%", 0, .03], ["3-6", "3–6%", .03, .06],
                     ["6-10", "6–10%", .06, .10], ["10-20", "10–20%", .10, .20], ["20+", "20%+", .20, 9]];
 const evBucket = (ev) => (EV_BUCKETS.find(b => ev >= b[2] && ev < b[3]) || EV_BUCKETS[0])[0];
 
 // -- filters: all of them live in the URL hash ---------------------------------------
-const DEFAULTS = { mkt: "sog", ds: "picks", day: "", from: "", to: "", side: "", line: "", ev: "", team: "", opp: "", q: "", bd: "side", n: "10" };
+const DEFAULTS = { mkt: "sog", ds: "picks", day: "", from: "", to: "", side: "", line: "", ev: "", fv: "", team: "", opp: "", q: "", bd: "side", n: "10" };
 let F = { ...DEFAULTS };
 function readHash() {
   const h = new URLSearchParams(location.hash.slice(1));
@@ -231,10 +316,12 @@ function syncControls() {
   const day = F.day || (F.from && F.from === F.to ? F.from : "");
   $("f-day").value = D.days.includes(day) ? day : "";
   $("f-from").value = F.day || F.from; $("f-to").value = F.day || F.to;
-  for (const k of ["side", "line", "ev", "team", "opp"]) $("f-" + k).value = F[k];
+  for (const k of ["side", "line", "ev", "fv", "team", "opp"]) $("f-" + k).value = F[k];
   if (document.activeElement !== $("f-q")) $("f-q").value = F.q;
   const saves = F.mkt === "saves";
   for (const x of document.querySelectorAll(".sogonly")) { x.classList.toggle("off", saves); x.querySelector("select").disabled = saves; }
+  if (!saves && !feeActive()) { $("fv-label").classList.add("off"); $("f-fv").disabled = true; }
+  $("fv-label").title = feeActive() ? "" : "The fee is off: every line passes.";
   for (const b of $("f-ds").querySelectorAll("button")) b.disabled = saves;
   $("f-ds").classList.toggle("off", saves);
   const dl = $("dl-players"); dl.replaceChildren();
@@ -247,7 +334,7 @@ for (const id of ["f-mkt", "f-ds"]) $(id).addEventListener("click", (e) => {
 $("f-day").addEventListener("change", () => set({ day: $("f-day").value, from: "", to: "" }));
 $("f-from").addEventListener("change", () => set({ day: "", from: $("f-from").value, to: F.day || F.to }));
 $("f-to").addEventListener("change", () => set({ day: "", to: $("f-to").value, from: F.day || F.from }));
-for (const k of ["side", "line", "ev", "team", "opp"]) $("f-" + k).addEventListener("change", () => set({ [k]: $("f-" + k).value }));
+for (const k of ["side", "line", "ev", "fv", "team", "opp"]) $("f-" + k).addEventListener("change", () => set({ [k]: $("f-" + k).value }));
 let qt; $("f-q").addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(() => set({ q: $("f-q").value.trim() }, true), 150); });
 $("f-reset").addEventListener("click", () => set({ ...DEFAULTS, mkt: F.mkt }));
 addEventListener("popstate", () => { readHash(); syncControls(); draw(); });
@@ -260,7 +347,8 @@ function inRange(r) {
 function sogRows() {
   const q = F.q.toLowerCase();
   return SOG[F.ds].filter(r => inRange(r) && (!F.side || r.side === F.side) && (!F.line || String(r.line) === F.line) &&
-    (!F.ev || evBucket(r.ev) === F.ev) && (!F.team || r.team === F.team) && (!F.opp || r.opp === F.opp) &&
+    (!F.ev || evBucket(r.ev0) === F.ev) && (!F.fv || !feeActive() || (F.fv === "pass") === r.fv) &&
+    (!F.team || r.team === F.team) && (!F.opp || r.opp === F.opp) &&
     (!q || r.name.toLowerCase().includes(q)));
 }
 function goalieRows() {
@@ -519,12 +607,16 @@ function draw() {
       `Anything under ${MIN_N} is greyed: it is noise.`
     : `Every two-sided DraftKings line on a projected skater since ${longDate(D.first_day)}, on the side with the higher EV at DraftKings' price, from the snapshot a pick would use; ` +
       `picks are a subset. Most lines have negative EV, so "all lines" ROI is mostly the vig: read it for calibration, the Under lean and CLV, not as a strategy. Anything under ${MIN_N} is greyed.`;
+  if (feeActive()) $("lede").textContent += ` EV, expected and units are ${feeSentence()}: one fee per graded line, a void assumed refunded. ` +
+    `The fee rule passes a line when its min stake (fee ÷ (EV before the fee × ${Math.round(FEE.share * 100)}%)) is within your unit; EV buckets use EV before the fee.`;
   tile("Graded " + dsName, String(a.graded), `${a.wins}–${a.losses}–${a.pushes}` + (a.voids ? `, ${a.voids} void` : "") + (a.n > a.graded + a.voids ? `, ${a.n - a.graded - a.voids} pending` : ""));
-  tile("Units", units(a.units), `expected ${units(a.exp_units)}`);
+  tile(feeActive() ? "Units, net of fee" : "Units", units(a.units), `expected ${units(a.exp_units)} · ${a.units >= 0 ? "+" : "−"}$${Math.round(Math.abs(a.units * FEE.unit)).toLocaleString("en-US")} at ${dollars(FEE.unit)}`);
   tile("ROI", signed(a.roi), `expected ${signed(a.exp_roi)}`);
   tile("Hit rate", pct(a.hit), `model ${pct(a.exp_hit)}`);
   tile("Avg CLV", pts(a.clv, 2), `${a.clv_n} with a close · price CLV ${signed(a.clve)}`);
   tile("Line moved our way", pct(a.ours, 0), `of ${a.mv_n} with a close`);
+  if (feeActive()) tile("Pass the fee rule", pct(rows.length ? rows.filter(r => r.fv).length / rows.length : null, 0),
+    `${rows.filter(r => r.fv).length} of ${rows.length} at ${dollars(FEE.unit)}, ${Math.round(FEE.share * 100)}% share`);
   drawPlayer(rows);
 
   const ch = $("charts");
@@ -617,7 +709,7 @@ function draw() {
     }
     box.append(el("div", { class: "head" }, [el("h3", { text: "Breakdown: ROI, CLV and hit rate" }), seg]),
       el("div", { class: "sub", text: `Bars under ${MIN_N} graded are faded and starred. Hit-rate bars carry a tick at the model's expected rate.` }));
-    const groups = new Map(), key = { side: r => r.side === "O" ? "Over" : "Under", line: r => String(r.line), ev: r => evBucket(r.ev), team: r => r.team }[F.bd] || (r => r.side);
+    const groups = new Map(), key = { side: r => r.side === "O" ? "Over" : "Under", line: r => String(r.line), ev: r => evBucket(r.ev0), team: r => r.team }[F.bd] || (r => r.side);
     for (const r of rows) { const k = key(r); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
     let order = [...groups.keys()];
     if (F.bd === "ev") order = EV_BUCKETS.map(b => b[0]).filter(k => groups.has(k));
@@ -696,8 +788,9 @@ function columns(goalie) {
   return [
     ["Date", "day", r => r.day], ["Player", "name", r => r.name], ["Game", "team", r => `${r.team} v ${r.opp}`],
     ["Line", "line", r => r.line], ["Side", "side", r => r.side === "O" ? "Over" : "Under"], ["Price", "price", r => priceS(r.price)],
-    ["Model P", "mp", r => pct(r.mp)], ["Fair P", "fp", r => pct(r.fp)], ["EV", "ev", r => signed(r.ev)], ["Proj", "exp", r => r.exp.toFixed(2)],
-    ["SOG", "act", r => r.act ?? ""], ["Result", "res", r => r.res ? RES[r.res] : "pending"], ["Units", "pl", r => r.pl == null ? "" : units(r.pl)],
+    ["Model P", "mp", r => pct(r.mp)], ["Fair P", "fp", r => pct(r.fp)], [feeActive() ? "EV, net" : "EV", "ev", r => signed(r.ev)],
+    ...(feeActive() ? [["Min stake", "ms", r => minStakeS(r.ev0)]] : []), ["Proj", "exp", r => r.exp.toFixed(2)],
+    ["SOG", "act", r => r.act ?? ""], ["Result", "res", r => r.res ? RES[r.res] : "pending"], [feeActive() ? "Units, net" : "Units", "pl", r => r.pl == null ? "" : units(r.pl)],
     ["Close", "close", r => r.close == null ? (r.note || "") : priceS(r.close)], ["CLV", "clv", r => r.clv == null ? "" : pts(r.clv)], ["Price CLV", "clve", r => r.clve == null ? "" : signed(r.clve)],
     ...(F.ds === "all" ? [["Pick", "pick", r => r.pick ? "pick" : ""]] : []), ["Flagged", "flag", r => r.flag ? "yes" : ""]];
 }
@@ -722,7 +815,7 @@ function drawTable(rows, goalie) {
   for (const r of sorted.slice(0, limit)) {
     const tr = body.insertRow();
     for (const [, key, f] of cols) { const td = tr.insertCell(); td.textContent = f(r);
-      if (key === "res" && !r.res) td.className = "dim"; if (key === "pl" && r.pl > 0) td.className = "pos"; if (key === "clve") td.className = "dim"; }
+      if (key === "res" && !r.res) td.className = "dim"; if (key === "pl" && r.pl > 0) td.className = "pos"; if (key === "clve" || (key === "ms" && !r.fv)) td.className = "dim"; }
   }
   host.append(t);
   $("more").replaceChildren();
@@ -736,10 +829,12 @@ function downloadCsv(rows, goalie) {
        ["projected_saves", r => r.exp], ["line", r => r.line], ["p_over", r => r.po], ["projected_starter_started", r => r.ok ?? ""], ["actual_starter", r => r.actual_starter ?? ""],
        ["saves", r => r.sv ?? ""], ["shots_against", r => r.sa ?? ""], ["error", r => r.err ?? ""]]
     : [["date", r => r.day], ["game_id", r => r.g], ["player_id", r => r.p], ["player", r => r.name], ["team", r => r.team], ["opp", r => r.opp], ["line", r => r.line],
-       ["side", r => r.side === "O" ? "Over" : "Under"], ["dk_price", r => r.price], ["model_p", r => r.mp], ["fair_p", r => r.fp], ["ev", r => r.ev],
-       ["projected_sog", r => r.exp], ["actual_sog", r => r.act ?? ""], ["result", r => r.res ? RES[r.res] : ""], ["units", r => r.pl ?? ""],
+       ["side", r => r.side === "O" ? "Over" : "Under"], ["dk_price", r => r.price], ["model_p", r => r.mp], ["fair_p", r => r.fp], ["ev", r => r.ev0],
+       ["projected_sog", r => r.exp], ["actual_sog", r => r.act ?? ""], ["result", r => r.res ? RES[r.res] : ""], ["units", r => r.pl0 ?? ""],
        ["close_price", r => r.close ?? ""], ["clv_p", r => r.clv ?? ""], ["clv_ev", r => r.clve ?? ""], ["moved", r => ({ o: "ours", a: "against", f: "flat" })[r.mv] || ""],
-       ["clv_note", r => r.note || ""], ["pick", r => r.pick], ["flagged", r => r.flag]];
+       ["clv_note", r => r.note || ""], ["pick", r => r.pick], ["flagged", r => r.flag],
+       ...(feeActive() ? [["fee_units", () => +feeU().toFixed(4)], ["ev_net", r => +r.ev.toFixed(4)], ["units_net", r => r.pl == null ? "" : +r.pl.toFixed(4)],
+         ["min_stake", r => r.ms == null ? "" : +r.ms.toFixed(2)], ["fee_viable", r => r.fv ? 1 : 0]] : [])];
   const q = (v) => { const s = String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const text = [fields.map(f => f[0]).join(","), ...rows.map(r => fields.map(f => q(f[1](r))).join(","))].join("\n");
   const a = el("a", { href: URL.createObjectURL(new Blob([text], { type: "text/csv" })),
@@ -804,6 +899,7 @@ function barChart(host, games, val, line, goalie) {
 }
 
 
+feeUI(() => { applyFee(); syncControls(); draw(); });
 readHash(); syncControls(); draw();
 // Redraw at the new width only (phones fire resize on scroll as the toolbar hides).
 let rt, lastW = innerWidth;
