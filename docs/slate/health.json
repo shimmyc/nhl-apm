@@ -1,11 +1,11 @@
 {
- "generated_utc": "2026-10-21T17:00:21Z",
- "last_run_utc": "2026-10-21T17:00:21Z",
+ "generated_utc": "2026-10-21T18:00:23Z",
+ "last_run_utc": "2026-10-21T18:00:23Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-21T17:00:21Z",
+ "last_success_utc": "2026-10-21T18:00:23Z",
  "steps": {
   "odds": {
-   "at": "2026-10-21T17:00:20Z",
+   "at": "2026-10-21T18:00:23Z",
    "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
   }
