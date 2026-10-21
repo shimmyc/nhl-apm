@@ -1,31 +1,44 @@
 {
- "generated_utc": "2026-10-21T14:00:50Z",
- "last_run_utc": "2026-10-21T14:00:50Z",
+ "generated_utc": "2026-10-21T15:00:31Z",
+ "last_run_utc": "2026-10-21T15:00:31Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-21T14:00:50Z",
+ "last_success_utc": "2026-10-21T15:00:31Z",
  "steps": {
   "odds": {
-   "at": "2026-10-21T14:00:20Z",
-   "detail": "pregame 0 logged (0 with DK)",
+   "at": "2026-10-21T15:00:24Z",
+   "detail": "morning 2 logged (2 with DK); pregame 0 logged (0 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-21T14:00:50Z"
+   "at": "2026-10-21T15:00:31Z"
   }
  },
- "last_snapshot_utc": "2026-10-21T02:20:20Z",
- "last_slate_utc": "2026-10-21T14:00:50Z",
- "games_today": [],
+ "last_snapshot_utc": "2026-10-21T15:00:23Z",
+ "last_slate_utc": "2026-10-21T15:00:31Z",
+ "games_today": [
+  {
+   "start_utc": "2026-10-21T23:40:00Z",
+   "game": "Philadelphia Flyers @ Buffalo Sabres",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-21T23:40:00Z",
+   "game": "Florida Panthers @ Ottawa Senators",
+   "morning": true,
+   "pregame": false
+  }
+ ],
  "credits": {
-  "remaining": 440,
-  "used": 60,
-  "as_of": "2026-10-21T02:20:20Z",
+  "remaining": 438,
+  "used": 62,
+  "as_of": "2026-10-21T15:00:23Z",
   "reset": "2026-11-01",
   "games_left": 73,
-  "needed": 146,
-  "usable": 415,
+  "needed": 144,
+  "usable": 413,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
