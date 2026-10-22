@@ -1,27 +1,17 @@
 {
- "generated_utc": "2026-10-22T20:40:36Z",
- "last_run_utc": "2026-10-22T20:40:36Z",
+ "generated_utc": "2026-10-22T21:40:18Z",
+ "last_run_utc": "2026-10-22T21:40:18Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-22T20:40:36Z",
+ "last_success_utc": "2026-10-22T21:40:18Z",
  "steps": {
   "odds": {
-   "at": "2026-10-22T20:40:21Z",
+   "at": "2026-10-22T21:40:18Z",
    "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
-  },
-  "recheck": {
-   "at": "2026-10-22T20:40:36Z",
-   "detail": "recheck: 2 boxscores re-fetched, 2 changed, 4 rows re-graded, 1 results flipped (2026020152 (2026-10-21): 1 sog, 1 saves; 3 re-graded; 2026020153 (2026-10-21): 2 sog; 1 re-graded; flipped: line Matthew Tkachuk Under 2.5: win -> loss (SOG 2 -> 3))",
-   "ok": true
-  },
-  "slate": {
-   "ok": true,
-   "detail": "published with this health update",
-   "at": "2026-10-22T20:40:36Z"
   }
  },
  "last_snapshot_utc": "2026-10-22T15:00:36Z",
- "last_slate_utc": "2026-10-22T20:40:36Z",
+ "last_slate_utc": "2026-10-22T20:40:40Z",
  "games_today": [
   {
    "start_utc": "2026-10-22T23:10:00Z",
