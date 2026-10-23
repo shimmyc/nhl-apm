@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-10-22T23:40:25Z",
- "last_run_utc": "2026-10-22T23:40:25Z",
+ "generated_utc": "2026-10-23T00:40:25Z",
+ "last_run_utc": "2026-10-23T00:40:25Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-22T23:40:25Z",
+ "last_success_utc": "2026-10-23T00:40:25Z",
  "steps": {
   "odds": {
-   "at": "2026-10-22T23:40:18Z",
+   "at": "2026-10-23T00:40:16Z",
    "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-22T23:40:25Z"
+   "at": "2026-10-23T00:40:25Z"
   }
  },
- "last_snapshot_utc": "2026-10-22T23:40:17Z",
- "last_slate_utc": "2026-10-22T23:40:25Z",
+ "last_snapshot_utc": "2026-10-23T00:40:15Z",
+ "last_slate_utc": "2026-10-23T00:40:25Z",
  "games_today": [
   {
    "start_utc": "2026-10-22T23:10:00Z",
@@ -70,13 +70,13 @@
    "start_utc": "2026-10-23T01:10:00Z",
    "game": "Minnesota Wild @ Calgary Flames",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-23T01:10:00Z",
    "game": "Carolina Hurricanes @ Edmonton Oilers",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-23T02:10:00Z",
@@ -92,13 +92,13 @@
   }
  ],
  "credits": {
-  "remaining": 416,
-  "used": 84,
-  "as_of": "2026-10-22T23:40:17Z",
+  "remaining": 414,
+  "used": 86,
+  "as_of": "2026-10-23T00:40:15Z",
   "reset": "2026-11-01",
-  "games_left": 65,
-  "needed": 122,
-  "usable": 391,
+  "games_left": 59,
+  "needed": 112,
+  "usable": 389,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
