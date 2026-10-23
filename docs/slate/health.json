@@ -1,91 +1,23 @@
 {
- "generated_utc": "2026-10-23T02:40:16Z",
- "last_run_utc": "2026-10-23T02:40:16Z",
+ "generated_utc": "2026-10-23T14:01:06Z",
+ "last_run_utc": "2026-10-23T14:01:06Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-23T02:40:16Z",
+ "last_success_utc": "2026-10-23T14:01:06Z",
  "steps": {
   "odds": {
-   "at": "2026-10-23T02:40:16Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-10-23T14:00:24Z",
+   "detail": "pregame 0 logged (0 with DK)",
    "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-10-23T14:01:06Z"
   }
  },
  "last_snapshot_utc": "2026-10-23T01:40:17Z",
- "last_slate_utc": "2026-10-23T01:40:40Z",
- "games_today": [
-  {
-   "start_utc": "2026-10-22T23:10:00Z",
-   "game": "New York Rangers @ Toronto Maple Leafs",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-22T23:10:00Z",
-   "game": "Nashville Predators @ Boston Bruins",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-22T23:10:00Z",
-   "game": "Anaheim Ducks @ New Jersey Devils",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-22T23:10:00Z",
-   "game": "San Jose Sharks @ Ottawa Senators",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-22T23:10:00Z",
-   "game": "Florida Panthers @ Pittsburgh Penguins",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-22T23:40:00Z",
-   "game": "Los Angeles Kings @ New York Islanders",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-23T00:10:00Z",
-   "game": "Vegas Golden Knights @ St Louis Blues",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-23T00:10:00Z",
-   "game": "Winnipeg Jets @ Dallas Stars",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-23T01:10:00Z",
-   "game": "Minnesota Wild @ Calgary Flames",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-23T01:10:00Z",
-   "game": "Carolina Hurricanes @ Edmonton Oilers",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-23T02:10:00Z",
-   "game": "Detroit Red Wings @ Vancouver Canucks",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-23T02:10:00Z",
-   "game": "Utah Mammoth @ Seattle Kraken",
-   "morning": true,
-   "pregame": true
-  }
- ],
+ "last_slate_utc": "2026-10-23T14:01:06Z",
+ "games_today": [],
  "credits": {
   "remaining": 412,
   "used": 88,
