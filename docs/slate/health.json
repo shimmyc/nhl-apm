@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-10-23T00:40:25Z",
- "last_run_utc": "2026-10-23T00:40:25Z",
+ "generated_utc": "2026-10-23T01:40:35Z",
+ "last_run_utc": "2026-10-23T01:40:35Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-23T00:40:25Z",
+ "last_success_utc": "2026-10-23T01:40:35Z",
  "steps": {
   "odds": {
-   "at": "2026-10-23T00:40:16Z",
+   "at": "2026-10-23T01:40:18Z",
    "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-23T00:40:25Z"
+   "at": "2026-10-23T01:40:35Z"
   }
  },
- "last_snapshot_utc": "2026-10-23T00:40:15Z",
- "last_slate_utc": "2026-10-23T00:40:25Z",
+ "last_snapshot_utc": "2026-10-23T01:40:17Z",
+ "last_slate_utc": "2026-10-23T01:40:35Z",
  "games_today": [
   {
    "start_utc": "2026-10-22T23:10:00Z",
@@ -82,23 +82,23 @@
    "start_utc": "2026-10-23T02:10:00Z",
    "game": "Detroit Red Wings @ Vancouver Canucks",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-23T02:10:00Z",
    "game": "Utah Mammoth @ Seattle Kraken",
    "morning": true,
-   "pregame": false
+   "pregame": true
   }
  ],
  "credits": {
-  "remaining": 414,
-  "used": 86,
-  "as_of": "2026-10-23T00:40:15Z",
+  "remaining": 412,
+  "used": 88,
+  "as_of": "2026-10-23T01:40:17Z",
   "reset": "2026-11-01",
   "games_left": 59,
-  "needed": 112,
-  "usable": 389,
+  "needed": 114,
+  "usable": 387,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
