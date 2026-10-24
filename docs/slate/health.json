@@ -1,18 +1,13 @@
 {
- "generated_utc": "2026-10-24T21:00:30Z",
- "last_run_utc": "2026-10-24T21:00:30Z",
- "last_run_ok": false,
- "last_success_utc": "2026-10-24T20:20:14Z",
+ "generated_utc": "2026-10-24T21:20:16Z",
+ "last_run_utc": "2026-10-24T21:20:16Z",
+ "last_run_ok": true,
+ "last_success_utc": "2026-10-24T21:20:16Z",
  "steps": {
   "odds": {
-   "at": "2026-10-24T21:00:19Z",
+   "at": "2026-10-24T21:20:16Z",
    "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
-  },
-  "slate": {
-   "at": "2026-10-24T21:00:29Z",
-   "detail": "stat recheck due: '<' not supported between instances of 'int' and 'str'",
-   "ok": false
   }
  },
  "last_snapshot_utc": "2026-10-24T19:00:23Z",
