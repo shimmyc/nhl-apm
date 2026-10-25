@@ -1,16 +1,21 @@
 {
- "generated_utc": "2026-10-25T01:00:19Z",
- "last_run_utc": "2026-10-25T01:00:19Z",
- "last_run_ok": true,
+ "generated_utc": "2026-10-25T01:40:29Z",
+ "last_run_utc": "2026-10-25T01:40:29Z",
+ "last_run_ok": false,
  "last_success_utc": "2026-10-25T01:00:19Z",
  "steps": {
   "odds": {
-   "at": "2026-10-25T01:00:19Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-10-25T01:40:17Z",
+   "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
    "ok": true
+  },
+  "slate": {
+   "at": "2026-10-25T01:40:28Z",
+   "detail": "new DraftKings lines: '<' not supported between instances of 'int' and 'str'",
+   "ok": false
   }
  },
- "last_snapshot_utc": "2026-10-25T00:40:15Z",
+ "last_snapshot_utc": "2026-10-25T01:40:16Z",
  "last_slate_utc": "2026-10-24T15:00:57Z",
  "games_today": [
   {
@@ -77,23 +82,23 @@
    "start_utc": "2026-10-25T02:10:00Z",
    "game": "Detroit Red Wings @ Calgary Flames",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-25T02:10:00Z",
    "game": "Minnesota Wild @ Seattle Kraken",
    "morning": true,
-   "pregame": false
+   "pregame": true
   }
  ],
  "credits": {
-  "remaining": 386,
-  "used": 114,
-  "as_of": "2026-10-25T00:40:15Z",
+  "remaining": 384,
+  "used": 116,
+  "as_of": "2026-10-25T01:40:16Z",
   "reset": "2026-11-01",
   "games_left": 45,
-  "needed": 88,
-  "usable": 361,
+  "needed": 86,
+  "usable": 359,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
