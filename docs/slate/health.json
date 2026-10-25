@@ -1,23 +1,28 @@
 {
- "generated_utc": "2026-10-25T17:40:14Z",
- "last_run_utc": "2026-10-25T17:40:14Z",
+ "generated_utc": "2026-10-25T18:40:23Z",
+ "last_run_utc": "2026-10-25T18:40:23Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-25T17:40:14Z",
+ "last_success_utc": "2026-10-25T18:40:23Z",
  "steps": {
   "odds": {
-   "at": "2026-10-25T17:40:13Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-10-25T18:40:17Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-10-25T18:40:23Z"
   }
  },
- "last_snapshot_utc": "2026-10-25T15:00:25Z",
- "last_slate_utc": "2026-10-25T16:40:25Z",
+ "last_snapshot_utc": "2026-10-25T18:40:16Z",
+ "last_slate_utc": "2026-10-25T18:40:23Z",
  "games_today": [
   {
    "start_utc": "2026-10-25T19:10:00Z",
    "game": "Florida Panthers @ Chicago Blackhawks",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-25T22:10:00Z",
@@ -45,13 +50,13 @@
   }
  ],
  "credits": {
-  "remaining": 379,
-  "used": 121,
-  "as_of": "2026-10-25T15:00:25Z",
+  "remaining": 378,
+  "used": 122,
+  "as_of": "2026-10-25T18:40:16Z",
   "reset": "2026-11-01",
   "games_left": 45,
-  "needed": 85,
-  "usable": 354,
+  "needed": 84,
+  "usable": 353,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
