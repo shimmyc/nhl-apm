@@ -1,22 +1,27 @@
 {
- "generated_utc": "2026-10-26T15:00:30Z",
- "last_run_utc": "2026-10-26T15:00:30Z",
+ "generated_utc": "2026-10-26T16:00:34Z",
+ "last_run_utc": "2026-10-26T16:00:34Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-26T15:00:30Z",
+ "last_success_utc": "2026-10-26T16:00:34Z",
  "steps": {
   "odds": {
-   "at": "2026-10-26T15:00:24Z",
-   "detail": "morning 3 logged (3 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-10-26T16:00:25Z",
+   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "ok": true
+  },
+  "recheck": {
+   "at": "2026-10-26T16:00:34Z",
+   "detail": "recheck: 1 boxscores re-fetched, 1 changed, 4 rows re-graded, 2 results flipped (2026020180 (2026-10-25): 3 sog, 2 saves; 4 re-graded; flipped: line Carter Verhaeghe Over 2.5: loss -> win (SOG 1 -> 3); goalie FLA Akira Schmid: over -> under (saves 20 -> 19))",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-26T15:00:30Z"
+   "at": "2026-10-26T16:00:34Z"
   }
  },
  "last_snapshot_utc": "2026-10-26T15:00:22Z",
- "last_slate_utc": "2026-10-26T15:00:30Z",
+ "last_slate_utc": "2026-10-26T16:00:34Z",
  "games_today": [
   {
    "start_utc": "2026-10-26T23:10:00Z",
