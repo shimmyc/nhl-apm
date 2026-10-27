@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-10-27T00:20:21Z",
- "last_run_utc": "2026-10-27T00:20:21Z",
+ "generated_utc": "2026-10-27T01:20:21Z",
+ "last_run_utc": "2026-10-27T01:20:21Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-27T00:20:21Z",
+ "last_success_utc": "2026-10-27T01:20:21Z",
  "steps": {
   "odds": {
-   "at": "2026-10-27T00:20:15Z",
+   "at": "2026-10-27T01:20:15Z",
    "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-27T00:20:21Z"
+   "at": "2026-10-27T01:20:21Z"
   }
  },
- "last_snapshot_utc": "2026-10-27T00:20:14Z",
- "last_slate_utc": "2026-10-27T00:20:21Z",
+ "last_snapshot_utc": "2026-10-27T01:20:14Z",
+ "last_slate_utc": "2026-10-27T01:20:21Z",
  "games_today": [
   {
    "start_utc": "2026-10-26T23:10:00Z",
@@ -34,17 +34,17 @@
    "start_utc": "2026-10-27T01:40:00Z",
    "game": "Detroit Red Wings @ Edmonton Oilers",
    "morning": true,
-   "pregame": false
+   "pregame": true
   }
  ],
  "credits": {
-  "remaining": 369,
-  "used": 131,
-  "as_of": "2026-10-27T00:20:14Z",
+  "remaining": 368,
+  "used": 132,
+  "as_of": "2026-10-27T01:20:14Z",
   "reset": "2026-11-01",
   "games_left": 37,
-  "needed": 71,
-  "usable": 344,
+  "needed": 72,
+  "usable": 343,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
