@@ -1,31 +1,56 @@
 {
- "generated_utc": "2026-10-28T14:01:08Z",
- "last_run_utc": "2026-10-28T14:01:08Z",
+ "generated_utc": "2026-10-28T15:00:33Z",
+ "last_run_utc": "2026-10-28T15:00:33Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-28T14:01:08Z",
+ "last_success_utc": "2026-10-28T15:00:33Z",
  "steps": {
   "odds": {
-   "at": "2026-10-28T14:00:24Z",
-   "detail": "pregame 0 logged (0 with DK)",
+   "at": "2026-10-28T15:00:27Z",
+   "detail": "morning 4 logged (4 with DK); pregame 0 logged (0 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-28T14:01:08Z"
+   "at": "2026-10-28T15:00:33Z"
   }
  },
- "last_snapshot_utc": "2026-10-28T02:20:18Z",
- "last_slate_utc": "2026-10-28T14:01:08Z",
- "games_today": [],
+ "last_snapshot_utc": "2026-10-28T15:00:25Z",
+ "last_slate_utc": "2026-10-28T15:00:33Z",
+ "games_today": [
+  {
+   "start_utc": "2026-10-28T23:40:00Z",
+   "game": "Philadelphia Flyers @ Washington Capitals",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-29T00:40:00Z",
+   "game": "Calgary Flames @ Edmonton Oilers",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-29T01:10:00Z",
+   "game": "New Jersey Devils @ Colorado Avalanche",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-29T02:10:00Z",
+   "game": "Toronto Maple Leafs @ Seattle Kraken",
+   "morning": true,
+   "pregame": false
+  }
+ ],
  "credits": {
-  "remaining": 346,
-  "used": 154,
-  "as_of": "2026-10-28T02:20:18Z",
+  "remaining": 342,
+  "used": 158,
+  "as_of": "2026-10-28T15:00:25Z",
   "reset": "2026-11-01",
   "games_left": 26,
-  "needed": 52,
-  "usable": 321,
+  "needed": 48,
+  "usable": 317,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
