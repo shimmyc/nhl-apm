@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-10-28T00:40:24Z",
- "last_run_utc": "2026-10-28T00:40:24Z",
+ "generated_utc": "2026-10-28T01:40:31Z",
+ "last_run_utc": "2026-10-28T01:40:31Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-28T00:40:24Z",
+ "last_success_utc": "2026-10-28T01:40:31Z",
  "steps": {
   "odds": {
-   "at": "2026-10-28T00:40:17Z",
-   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
+   "at": "2026-10-28T01:40:20Z",
+   "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-28T00:40:24Z"
+   "at": "2026-10-28T01:40:31Z"
   }
  },
- "last_snapshot_utc": "2026-10-28T00:40:16Z",
- "last_slate_utc": "2026-10-28T00:40:24Z",
+ "last_snapshot_utc": "2026-10-28T01:40:19Z",
+ "last_slate_utc": "2026-10-28T01:40:31Z",
  "games_today": [
   {
    "start_utc": "2026-10-27T23:10:00Z",
@@ -70,13 +70,13 @@
    "start_utc": "2026-10-28T02:10:00Z",
    "game": "Vancouver Canucks @ Anaheim Ducks",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-28T02:10:00Z",
    "game": "Ottawa Senators @ Vegas Golden Knights",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-28T02:40:00Z",
@@ -86,13 +86,13 @@
   }
  ],
  "credits": {
-  "remaining": 349,
-  "used": 151,
-  "as_of": "2026-10-28T00:40:16Z",
+  "remaining": 347,
+  "used": 153,
+  "as_of": "2026-10-28T01:40:19Z",
   "reset": "2026-11-01",
   "games_left": 26,
   "needed": 47,
-  "usable": 324,
+  "usable": 322,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
