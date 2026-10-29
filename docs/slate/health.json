@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-10-29T00:20:22Z",
- "last_run_utc": "2026-10-29T00:20:22Z",
+ "generated_utc": "2026-10-29T00:40:24Z",
+ "last_run_utc": "2026-10-29T00:40:24Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-29T00:20:22Z",
+ "last_success_utc": "2026-10-29T00:40:24Z",
  "steps": {
   "odds": {
-   "at": "2026-10-29T00:20:16Z",
+   "at": "2026-10-29T00:40:17Z",
    "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-29T00:20:22Z"
+   "at": "2026-10-29T00:40:24Z"
   }
  },
- "last_snapshot_utc": "2026-10-29T00:20:15Z",
- "last_slate_utc": "2026-10-29T00:20:22Z",
+ "last_snapshot_utc": "2026-10-29T00:40:16Z",
+ "last_slate_utc": "2026-10-29T00:40:24Z",
  "games_today": [
   {
    "start_utc": "2026-10-28T23:40:00Z",
@@ -34,7 +34,7 @@
    "start_utc": "2026-10-29T01:10:00Z",
    "game": "New Jersey Devils @ Colorado Avalanche",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-29T02:10:00Z",
@@ -44,13 +44,13 @@
   }
  ],
  "credits": {
-  "remaining": 340,
-  "used": 160,
-  "as_of": "2026-10-29T00:20:15Z",
+  "remaining": 339,
+  "used": 161,
+  "as_of": "2026-10-29T00:40:16Z",
   "reset": "2026-11-01",
   "games_left": 22,
-  "needed": 40,
-  "usable": 315,
+  "needed": 41,
+  "usable": 314,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
