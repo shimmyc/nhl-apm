@@ -1,45 +1,40 @@
 {
- "generated_utc": "2026-10-29T22:00:29Z",
- "last_run_utc": "2026-10-29T22:00:29Z",
+ "generated_utc": "2026-10-29T22:40:24Z",
+ "last_run_utc": "2026-10-29T22:40:24Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-29T22:00:29Z",
+ "last_success_utc": "2026-10-29T22:40:24Z",
  "steps": {
   "odds": {
-   "at": "2026-10-29T22:00:19Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
-   "ok": true
-  },
-  "recheck": {
-   "at": "2026-10-29T22:00:29Z",
-   "detail": "recheck: 1 boxscores re-fetched, 1 changed, 2 rows re-graded, 0 results flipped (2026020201 (2026-10-28): 1 sog, 1 saves; 2 re-graded)",
+   "at": "2026-10-29T22:40:18Z",
+   "detail": "morning 0 logged (0 with DK); pregame 3 logged (3 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-29T22:00:29Z"
+   "at": "2026-10-29T22:40:24Z"
   }
  },
- "last_snapshot_utc": "2026-10-29T15:00:34Z",
- "last_slate_utc": "2026-10-29T22:00:29Z",
+ "last_snapshot_utc": "2026-10-29T22:40:17Z",
+ "last_slate_utc": "2026-10-29T22:40:24Z",
  "games_today": [
   {
    "start_utc": "2026-10-29T23:10:00Z",
    "game": "Columbus Blue Jackets @ Carolina Hurricanes",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-29T23:10:00Z",
    "game": "Utah Mammoth @ Pittsburgh Penguins",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-29T23:10:00Z",
    "game": "Winnipeg Jets @ Tampa Bay Lightning",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-29T23:40:00Z",
@@ -91,13 +86,13 @@
   }
  ],
  "credits": {
-  "remaining": 327,
-  "used": 173,
-  "as_of": "2026-10-29T15:00:34Z",
+  "remaining": 324,
+  "used": 176,
+  "as_of": "2026-10-29T22:40:17Z",
   "reset": "2026-11-01",
   "games_left": 22,
-  "needed": 33,
-  "usable": 302,
+  "needed": 30,
+  "usable": 299,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
