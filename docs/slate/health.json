@@ -1,17 +1,27 @@
 {
- "generated_utc": "2026-10-30T19:00:21Z",
- "last_run_utc": "2026-10-30T19:00:21Z",
+ "generated_utc": "2026-10-30T20:00:35Z",
+ "last_run_utc": "2026-10-30T20:00:35Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-30T19:00:21Z",
+ "last_success_utc": "2026-10-30T20:00:35Z",
  "steps": {
   "odds": {
-   "at": "2026-10-30T19:00:21Z",
+   "at": "2026-10-30T20:00:20Z",
    "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
+  },
+  "recheck": {
+   "at": "2026-10-30T20:00:35Z",
+   "detail": "recheck: 3 boxscores re-fetched, 2 changed, 5 rows re-graded, 1 results flipped (2026020204 (2026-10-29): 2 sog; 1 re-graded; 2026020205 (2026-10-29): 2 sog, 2 saves; 4 re-graded; flipped: line Clayton Keller Over 2.5: loss -> win (SOG 2 -> 3))",
+   "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-10-30T20:00:35Z"
   }
  },
  "last_snapshot_utc": "2026-10-30T15:00:24Z",
- "last_slate_utc": "2026-10-30T15:00:34Z",
+ "last_slate_utc": "2026-10-30T20:00:35Z",
  "games_today": [
   {
    "start_utc": "2026-10-30T22:10:00Z",
