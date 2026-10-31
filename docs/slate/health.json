@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-10-31T16:40:22Z",
- "last_run_utc": "2026-10-31T16:40:22Z",
+ "generated_utc": "2026-10-31T17:40:23Z",
+ "last_run_utc": "2026-10-31T17:40:23Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-31T16:40:22Z",
+ "last_success_utc": "2026-10-31T17:40:23Z",
  "steps": {
   "odds": {
-   "at": "2026-10-31T16:40:16Z",
+   "at": "2026-10-31T17:40:18Z",
    "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-31T16:40:22Z"
+   "at": "2026-10-31T17:40:23Z"
   }
  },
- "last_snapshot_utc": "2026-10-31T16:40:15Z",
- "last_slate_utc": "2026-10-31T16:40:22Z",
+ "last_snapshot_utc": "2026-10-31T17:40:17Z",
+ "last_slate_utc": "2026-10-31T17:40:23Z",
  "games_today": [
   {
    "start_utc": "2026-10-31T17:10:00Z",
@@ -34,13 +34,13 @@
    "start_utc": "2026-10-31T18:10:00Z",
    "game": "Tampa Bay Lightning @ Nashville Predators",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-31T18:10:00Z",
    "game": "Edmonton Oilers @ New York Islanders",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-31T20:10:00Z",
@@ -80,13 +80,13 @@
   }
  ],
  "credits": {
-  "remaining": 298,
-  "used": 202,
-  "as_of": "2026-10-31T16:40:15Z",
+  "remaining": 296,
+  "used": 204,
+  "as_of": "2026-10-31T17:40:17Z",
   "reset": "2026-11-01",
-  "games_left": 8,
-  "needed": 6,
-  "usable": 273,
+  "games_left": 6,
+  "needed": 4,
+  "usable": 271,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
