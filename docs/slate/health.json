@@ -1,31 +1,92 @@
 {
- "generated_utc": "2026-10-31T14:00:53Z",
- "last_run_utc": "2026-10-31T14:00:53Z",
+ "generated_utc": "2026-10-31T15:00:37Z",
+ "last_run_utc": "2026-10-31T15:00:37Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-31T14:00:53Z",
+ "last_success_utc": "2026-10-31T15:00:37Z",
  "steps": {
   "odds": {
-   "at": "2026-10-31T14:00:19Z",
-   "detail": "pregame 0 logged (0 with DK)",
+   "at": "2026-10-31T15:00:31Z",
+   "detail": "morning 10 logged (10 with DK); pregame 0 logged (0 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-31T14:00:53Z"
+   "at": "2026-10-31T15:00:37Z"
   }
  },
- "last_snapshot_utc": "2026-10-30T23:40:17Z",
- "last_slate_utc": "2026-10-31T14:00:53Z",
- "games_today": [],
+ "last_snapshot_utc": "2026-10-31T15:00:30Z",
+ "last_slate_utc": "2026-10-31T15:00:37Z",
+ "games_today": [
+  {
+   "start_utc": "2026-10-31T17:10:00Z",
+   "game": "St Louis Blues @ Detroit Red Wings",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-31T17:10:00Z",
+   "game": "Chicago Blackhawks @ Boston Bruins",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-31T18:10:00Z",
+   "game": "Tampa Bay Lightning @ Nashville Predators",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-31T18:10:00Z",
+   "game": "Edmonton Oilers @ New York Islanders",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-31T20:10:00Z",
+   "game": "Buffalo Sabres @ Los Angeles Kings",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-31T20:10:00Z",
+   "game": "Ottawa Senators @ San Jose Sharks",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-31T23:10:00Z",
+   "game": "Toronto Maple Leafs @ Vancouver Canucks",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-10-31T23:10:00Z",
+   "game": "Pittsburgh Penguins @ Montr\u00e9al Canadiens",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-11-01T00:10:00Z",
+   "game": "Columbus Blue Jackets @ Dallas Stars",
+   "morning": true,
+   "pregame": false
+  },
+  {
+   "start_utc": "2026-11-01T02:10:00Z",
+   "game": "Calgary Flames @ Colorado Avalanche",
+   "morning": true,
+   "pregame": false
+  }
+ ],
  "credits": {
-  "remaining": 310,
-  "used": 190,
-  "as_of": "2026-10-30T23:40:17Z",
+  "remaining": 300,
+  "used": 200,
+  "as_of": "2026-10-31T15:00:30Z",
   "reset": "2026-11-01",
   "games_left": 8,
-  "needed": 16,
-  "usable": 285,
+  "needed": 8,
+  "usable": 275,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
