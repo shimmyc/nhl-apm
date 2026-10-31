@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-10-31T22:40:37Z",
- "last_run_utc": "2026-10-31T22:40:37Z",
+ "generated_utc": "2026-10-31T23:40:25Z",
+ "last_run_utc": "2026-10-31T23:40:25Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-31T22:40:37Z",
+ "last_success_utc": "2026-10-31T23:40:25Z",
  "steps": {
   "odds": {
-   "at": "2026-10-31T22:40:20Z",
-   "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
+   "at": "2026-10-31T23:40:16Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-10-31T22:40:37Z"
+   "at": "2026-10-31T23:40:25Z"
   }
  },
- "last_snapshot_utc": "2026-10-31T22:40:19Z",
- "last_slate_utc": "2026-10-31T22:40:37Z",
+ "last_snapshot_utc": "2026-10-31T23:40:15Z",
+ "last_slate_utc": "2026-10-31T23:40:25Z",
  "games_today": [
   {
    "start_utc": "2026-10-31T17:10:00Z",
@@ -70,7 +70,7 @@
    "start_utc": "2026-11-01T00:10:00Z",
    "game": "Columbus Blue Jackets @ Dallas Stars",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-01T02:10:00Z",
@@ -80,13 +80,13 @@
   }
  ],
  "credits": {
-  "remaining": 292,
-  "used": 208,
-  "as_of": "2026-10-31T22:40:19Z",
+  "remaining": 291,
+  "used": 209,
+  "as_of": "2026-10-31T23:40:15Z",
   "reset": "2026-11-01",
-  "games_left": 2,
+  "games_left": 0,
   "needed": 0,
-  "usable": 267,
+  "usable": 266,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
