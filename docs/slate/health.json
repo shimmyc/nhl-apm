@@ -1,29 +1,34 @@
 {
- "generated_utc": "2026-10-31T16:00:20Z",
- "last_run_utc": "2026-10-31T16:00:20Z",
+ "generated_utc": "2026-10-31T16:40:22Z",
+ "last_run_utc": "2026-10-31T16:40:22Z",
  "last_run_ok": true,
- "last_success_utc": "2026-10-31T16:00:20Z",
+ "last_success_utc": "2026-10-31T16:40:22Z",
  "steps": {
   "odds": {
-   "at": "2026-10-31T16:00:20Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-10-31T16:40:16Z",
+   "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
    "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-10-31T16:40:22Z"
   }
  },
- "last_snapshot_utc": "2026-10-31T15:00:30Z",
- "last_slate_utc": "2026-10-31T15:00:39Z",
+ "last_snapshot_utc": "2026-10-31T16:40:15Z",
+ "last_slate_utc": "2026-10-31T16:40:22Z",
  "games_today": [
   {
    "start_utc": "2026-10-31T17:10:00Z",
    "game": "St Louis Blues @ Detroit Red Wings",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-31T17:10:00Z",
    "game": "Chicago Blackhawks @ Boston Bruins",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-10-31T18:10:00Z",
@@ -75,13 +80,13 @@
   }
  ],
  "credits": {
-  "remaining": 300,
-  "used": 200,
-  "as_of": "2026-10-31T15:00:30Z",
+  "remaining": 298,
+  "used": 202,
+  "as_of": "2026-10-31T16:40:15Z",
   "reset": "2026-11-01",
   "games_left": 8,
-  "needed": 8,
-  "usable": 275,
+  "needed": 6,
+  "usable": 273,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
