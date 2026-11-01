@@ -1,17 +1,22 @@
 {
- "generated_utc": "2026-11-01T22:00:20Z",
- "last_run_utc": "2026-11-01T22:00:20Z",
+ "generated_utc": "2026-11-01T22:40:27Z",
+ "last_run_utc": "2026-11-01T22:40:27Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-01T22:00:20Z",
+ "last_success_utc": "2026-11-01T22:40:27Z",
  "steps": {
   "odds": {
-   "at": "2026-11-01T22:00:19Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-11-01T22:40:16Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-01T22:40:27Z"
   }
  },
- "last_snapshot_utc": "2026-11-01T20:40:16Z",
- "last_slate_utc": "2026-11-01T21:00:41Z",
+ "last_snapshot_utc": "2026-11-01T22:40:15Z",
+ "last_slate_utc": "2026-11-01T22:40:27Z",
  "games_today": [
   {
    "start_utc": "2026-11-01T18:10:00Z",
@@ -35,7 +40,7 @@
    "start_utc": "2026-11-01T23:10:00Z",
    "game": "Edmonton Oilers @ New York Rangers",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-02T01:10:00Z",
@@ -45,13 +50,13 @@
   }
  ],
  "credits": {
-  "remaining": 491,
-  "used": 9,
-  "as_of": "2026-11-01T20:40:16Z",
+  "remaining": 490,
+  "used": 10,
+  "as_of": "2026-11-01T22:40:15Z",
   "reset": "2026-12-01",
   "games_left": 201,
-  "needed": 400,
-  "usable": 466,
+  "needed": 399,
+  "usable": 465,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
