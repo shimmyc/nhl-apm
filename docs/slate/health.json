@@ -1,79 +1,28 @@
 {
- "generated_utc": "2026-11-01T02:40:20Z",
- "last_run_utc": "2026-11-01T02:40:20Z",
+ "generated_utc": "2026-11-01T15:00:56Z",
+ "last_run_utc": "2026-11-01T15:00:56Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-01T02:40:20Z",
+ "last_success_utc": "2026-11-01T15:00:56Z",
  "steps": {
   "odds": {
-   "at": "2026-11-01T02:40:19Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-11-01T15:00:20Z",
+   "detail": "pregame 0 logged (0 with DK)",
    "ok": true
+  },
+  "recheck": {
+   "at": "2026-11-01T15:00:56Z",
+   "detail": "recheck: 4 boxscores re-fetched, 0 changed, 0 rows re-graded, 0 results flipped",
+   "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-01T15:00:56Z"
   }
  },
  "last_snapshot_utc": "2026-11-01T01:40:16Z",
- "last_slate_utc": "2026-11-01T01:40:40Z",
- "games_today": [
-  {
-   "start_utc": "2026-10-31T17:10:00Z",
-   "game": "St Louis Blues @ Detroit Red Wings",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-31T17:10:00Z",
-   "game": "Chicago Blackhawks @ Boston Bruins",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-31T18:10:00Z",
-   "game": "Tampa Bay Lightning @ Nashville Predators",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-31T18:10:00Z",
-   "game": "Edmonton Oilers @ New York Islanders",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-31T20:10:00Z",
-   "game": "Buffalo Sabres @ Los Angeles Kings",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-31T20:10:00Z",
-   "game": "Ottawa Senators @ San Jose Sharks",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-31T23:10:00Z",
-   "game": "Toronto Maple Leafs @ Vancouver Canucks",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-10-31T23:10:00Z",
-   "game": "Pittsburgh Penguins @ Montr\u00e9al Canadiens",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-11-01T00:10:00Z",
-   "game": "Columbus Blue Jackets @ Dallas Stars",
-   "morning": true,
-   "pregame": true
-  },
-  {
-   "start_utc": "2026-11-01T02:10:00Z",
-   "game": "Calgary Flames @ Colorado Avalanche",
-   "morning": true,
-   "pregame": true
-  }
- ],
+ "last_slate_utc": "2026-11-01T15:00:56Z",
+ "games_today": [],
  "credits": {
   "remaining": 499,
   "used": 1,
