@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-11-04T00:20:32Z",
- "last_run_utc": "2026-11-04T00:20:32Z",
+ "generated_utc": "2026-11-04T00:40:28Z",
+ "last_run_utc": "2026-11-04T00:40:28Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-04T00:20:32Z",
+ "last_success_utc": "2026-11-04T00:40:28Z",
  "steps": {
   "odds": {
-   "at": "2026-11-04T00:20:19Z",
+   "at": "2026-11-04T00:40:16Z",
    "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-11-04T00:20:32Z"
+   "at": "2026-11-04T00:40:28Z"
   }
  },
- "last_snapshot_utc": "2026-11-04T00:20:18Z",
- "last_slate_utc": "2026-11-04T00:20:32Z",
+ "last_snapshot_utc": "2026-11-04T00:40:15Z",
+ "last_slate_utc": "2026-11-04T00:40:28Z",
  "games_today": [
   {
    "start_utc": "2026-11-04T00:10:00Z",
@@ -76,7 +76,7 @@
    "start_utc": "2026-11-04T01:10:00Z",
    "game": "Carolina Hurricanes @ Nashville Predators",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-04T02:10:00Z",
@@ -86,13 +86,13 @@
   }
  ],
  "credits": {
-  "remaining": 461,
-  "used": 39,
-  "as_of": "2026-11-04T00:20:18Z",
+  "remaining": 460,
+  "used": 40,
+  "as_of": "2026-11-04T00:40:15Z",
   "reset": "2026-12-01",
   "games_left": 184,
-  "needed": 364,
-  "usable": 436,
+  "needed": 365,
+  "usable": 435,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
