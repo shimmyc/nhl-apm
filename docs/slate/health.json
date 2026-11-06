@@ -1,17 +1,22 @@
 {
- "generated_utc": "2026-11-06T01:40:17Z",
- "last_run_utc": "2026-11-06T01:40:17Z",
+ "generated_utc": "2026-11-06T02:20:26Z",
+ "last_run_utc": "2026-11-06T02:20:26Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-06T01:40:17Z",
+ "last_success_utc": "2026-11-06T02:20:26Z",
  "steps": {
   "odds": {
-   "at": "2026-11-06T01:40:17Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-11-06T02:20:17Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-06T02:20:26Z"
   }
  },
- "last_snapshot_utc": "2026-11-06T00:40:15Z",
- "last_slate_utc": "2026-11-06T00:40:31Z",
+ "last_snapshot_utc": "2026-11-06T02:20:16Z",
+ "last_slate_utc": "2026-11-06T02:20:26Z",
  "games_today": [
   {
    "start_utc": "2026-11-06T00:10:00Z",
@@ -77,17 +82,17 @@
    "start_utc": "2026-11-06T02:40:00Z",
    "game": "Nashville Predators @ Colorado Avalanche",
    "morning": true,
-   "pregame": false
+   "pregame": true
   }
  ],
  "credits": {
-  "remaining": 430,
-  "used": 70,
-  "as_of": "2026-11-06T00:40:15Z",
+  "remaining": 429,
+  "used": 71,
+  "as_of": "2026-11-06T02:20:16Z",
   "reset": "2026-12-01",
   "games_left": 169,
-  "needed": 337,
-  "usable": 405,
+  "needed": 336,
+  "usable": 404,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
