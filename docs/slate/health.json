@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-11-08T00:40:32Z",
- "last_run_utc": "2026-11-08T00:40:32Z",
+ "generated_utc": "2026-11-08T01:40:26Z",
+ "last_run_utc": "2026-11-08T01:40:26Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-08T00:40:32Z",
+ "last_success_utc": "2026-11-08T01:40:26Z",
  "steps": {
   "odds": {
-   "at": "2026-11-08T00:40:19Z",
-   "detail": "morning 0 logged (0 with DK); pregame 3 logged (3 with DK)",
+   "at": "2026-11-08T01:40:17Z",
+   "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-11-08T00:40:32Z"
+   "at": "2026-11-08T01:40:26Z"
   }
  },
- "last_snapshot_utc": "2026-11-08T00:40:17Z",
- "last_slate_utc": "2026-11-08T00:40:32Z",
+ "last_snapshot_utc": "2026-11-08T01:40:16Z",
+ "last_slate_utc": "2026-11-08T01:40:26Z",
  "games_today": [
   {
    "start_utc": "2026-11-07T17:40:00Z",
@@ -76,13 +76,13 @@
    "start_utc": "2026-11-08T02:10:00Z",
    "game": "Detroit Red Wings @ Colorado Avalanche",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-08T02:10:00Z",
    "game": "Pittsburgh Penguins @ Los Angeles Kings",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-08T03:10:00Z",
@@ -92,13 +92,13 @@
   }
  ],
  "credits": {
-  "remaining": 402,
-  "used": 98,
-  "as_of": "2026-11-08T00:40:17Z",
+  "remaining": 400,
+  "used": 100,
+  "as_of": "2026-11-08T01:40:16Z",
   "reset": "2026-12-01",
   "games_left": 154,
-  "needed": 299,
-  "usable": 377,
+  "needed": 303,
+  "usable": 375,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
