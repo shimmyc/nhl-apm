@@ -1,11 +1,11 @@
 {
- "generated_utc": "2026-11-09T23:00:24Z",
- "last_run_utc": "2026-11-09T23:00:24Z",
+ "generated_utc": "2026-11-10T00:00:20Z",
+ "last_run_utc": "2026-11-10T00:00:20Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-09T23:00:24Z",
+ "last_success_utc": "2026-11-10T00:00:20Z",
  "steps": {
   "odds": {
-   "at": "2026-11-09T23:00:24Z",
+   "at": "2026-11-10T00:00:19Z",
    "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
   }
@@ -37,8 +37,8 @@
   "used": 116,
   "as_of": "2026-11-09T16:00:24Z",
   "reset": "2026-12-01",
-  "games_left": 148,
-  "needed": 293,
+  "games_left": 145,
+  "needed": 287,
   "usable": 359,
   "floor": 25,
   "runs_out": null,
