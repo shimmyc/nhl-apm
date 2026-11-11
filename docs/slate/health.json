@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-11-11T00:20:25Z",
- "last_run_utc": "2026-11-11T00:20:25Z",
+ "generated_utc": "2026-11-11T00:40:27Z",
+ "last_run_utc": "2026-11-11T00:40:27Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-11T00:20:25Z",
+ "last_success_utc": "2026-11-11T00:40:27Z",
  "steps": {
   "odds": {
-   "at": "2026-11-11T00:20:17Z",
+   "at": "2026-11-11T00:40:19Z",
    "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-11-11T00:20:25Z"
+   "at": "2026-11-11T00:40:27Z"
   }
  },
- "last_snapshot_utc": "2026-11-11T00:20:16Z",
- "last_slate_utc": "2026-11-11T00:20:25Z",
+ "last_snapshot_utc": "2026-11-11T00:40:18Z",
+ "last_slate_utc": "2026-11-11T00:40:27Z",
  "games_today": [
   {
    "start_utc": "2026-11-11T00:10:00Z",
@@ -52,7 +52,7 @@
    "start_utc": "2026-11-11T01:10:00Z",
    "game": "Detroit Red Wings @ St Louis Blues",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-11T03:10:00Z",
@@ -62,13 +62,13 @@
   }
  ],
  "credits": {
-  "remaining": 369,
-  "used": 131,
-  "as_of": "2026-11-11T00:20:16Z",
+  "remaining": 368,
+  "used": 132,
+  "as_of": "2026-11-11T00:40:18Z",
   "reset": "2026-12-01",
   "games_left": 138,
-  "needed": 272,
-  "usable": 344,
+  "needed": 273,
+  "usable": 343,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
