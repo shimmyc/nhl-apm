@@ -1,27 +1,22 @@
 {
- "generated_utc": "2026-11-11T00:00:36Z",
- "last_run_utc": "2026-11-11T00:00:36Z",
+ "generated_utc": "2026-11-11T00:20:25Z",
+ "last_run_utc": "2026-11-11T00:20:25Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-11T00:00:36Z",
+ "last_success_utc": "2026-11-11T00:20:25Z",
  "steps": {
   "odds": {
-   "at": "2026-11-11T00:00:24Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
-   "ok": true
-  },
-  "recheck": {
-   "at": "2026-11-11T00:00:36Z",
-   "detail": "recheck: 1 boxscores re-fetched, 1 changed, 4 rows re-graded, 0 results flipped (2026020285 (2026-11-09): 2 sog, 1 saves; 4 re-graded)",
+   "at": "2026-11-11T00:20:17Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-11-11T00:00:36Z"
+   "at": "2026-11-11T00:20:25Z"
   }
  },
- "last_snapshot_utc": "2026-11-10T23:40:21Z",
- "last_slate_utc": "2026-11-11T00:00:36Z",
+ "last_snapshot_utc": "2026-11-11T00:20:16Z",
+ "last_slate_utc": "2026-11-11T00:20:25Z",
  "games_today": [
   {
    "start_utc": "2026-11-11T00:10:00Z",
@@ -51,7 +46,7 @@
    "start_utc": "2026-11-11T00:40:00Z",
    "game": "Florida Panthers @ Columbus Blue Jackets",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-11T01:10:00Z",
@@ -67,13 +62,13 @@
   }
  ],
  "credits": {
-  "remaining": 370,
-  "used": 130,
-  "as_of": "2026-11-10T23:40:21Z",
+  "remaining": 369,
+  "used": 131,
+  "as_of": "2026-11-11T00:20:16Z",
   "reset": "2026-12-01",
   "games_left": 138,
-  "needed": 265,
-  "usable": 345,
+  "needed": 272,
+  "usable": 344,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
