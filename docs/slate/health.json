@@ -1,27 +1,27 @@
 {
- "generated_utc": "2026-11-11T21:00:44Z",
- "last_run_utc": "2026-11-11T21:00:44Z",
+ "generated_utc": "2026-11-11T21:40:34Z",
+ "last_run_utc": "2026-11-11T21:40:34Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-11T21:00:44Z",
+ "last_success_utc": "2026-11-11T21:40:34Z",
  "steps": {
   "odds": {
-   "at": "2026-11-11T21:00:29Z",
+   "at": "2026-11-11T21:40:22Z",
    "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
   },
   "recheck": {
-   "at": "2026-11-11T21:00:44Z",
-   "detail": "recheck: 4 boxscores re-fetched, 1 changed, 2 rows re-graded, 0 results flipped (2026020288 (2026-11-10): 1 sog, 1 saves; 2 re-graded)",
+   "at": "2026-11-11T21:40:34Z",
+   "detail": "recheck: 1 boxscores re-fetched, 1 changed, 4 rows re-graded, 0 results flipped (2026020289 (2026-11-10): 2 sog, 2 saves; 4 re-graded)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-11-11T21:00:44Z"
+   "at": "2026-11-11T21:40:34Z"
   }
  },
  "last_snapshot_utc": "2026-11-11T16:00:30Z",
- "last_slate_utc": "2026-11-11T21:00:44Z",
+ "last_slate_utc": "2026-11-11T21:40:34Z",
  "games_today": [
   {
    "start_utc": "2026-11-12T00:10:00Z",
