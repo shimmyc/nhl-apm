@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-11-12T01:40:24Z",
- "last_run_utc": "2026-11-12T01:40:24Z",
+ "generated_utc": "2026-11-12T02:20:24Z",
+ "last_run_utc": "2026-11-12T02:20:24Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-12T01:40:24Z",
+ "last_success_utc": "2026-11-12T02:20:24Z",
  "steps": {
   "odds": {
-   "at": "2026-11-12T01:40:16Z",
+   "at": "2026-11-12T02:20:16Z",
    "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-11-12T01:40:24Z"
+   "at": "2026-11-12T02:20:24Z"
   }
  },
- "last_snapshot_utc": "2026-11-12T01:40:15Z",
- "last_slate_utc": "2026-11-12T01:40:24Z",
+ "last_snapshot_utc": "2026-11-12T02:20:15Z",
+ "last_slate_utc": "2026-11-12T02:20:24Z",
  "games_today": [
   {
    "start_utc": "2026-11-12T00:10:00Z",
@@ -40,7 +40,7 @@
    "start_utc": "2026-11-12T02:40:00Z",
    "game": "Utah Mammoth @ Vegas Golden Knights",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-12T03:10:00Z",
@@ -56,13 +56,13 @@
   }
  ],
  "credits": {
-  "remaining": 358,
-  "used": 142,
-  "as_of": "2026-11-12T01:40:15Z",
+  "remaining": 357,
+  "used": 143,
+  "as_of": "2026-11-12T02:20:15Z",
   "reset": "2026-12-01",
   "games_left": 132,
-  "needed": 259,
-  "usable": 333,
+  "needed": 260,
+  "usable": 332,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
