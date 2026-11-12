@@ -1,17 +1,22 @@
 {
- "generated_utc": "2026-11-12T01:20:17Z",
- "last_run_utc": "2026-11-12T01:20:17Z",
+ "generated_utc": "2026-11-12T01:40:24Z",
+ "last_run_utc": "2026-11-12T01:40:24Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-12T01:20:17Z",
+ "last_success_utc": "2026-11-12T01:40:24Z",
  "steps": {
   "odds": {
-   "at": "2026-11-12T01:20:16Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-11-12T01:40:16Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-12T01:40:24Z"
   }
  },
- "last_snapshot_utc": "2026-11-12T00:20:16Z",
- "last_slate_utc": "2026-11-12T00:20:29Z",
+ "last_snapshot_utc": "2026-11-12T01:40:15Z",
+ "last_slate_utc": "2026-11-12T01:40:24Z",
  "games_today": [
   {
    "start_utc": "2026-11-12T00:10:00Z",
@@ -29,7 +34,7 @@
    "start_utc": "2026-11-12T02:10:00Z",
    "game": "Philadelphia Flyers @ Edmonton Oilers",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-12T02:40:00Z",
@@ -51,13 +56,13 @@
   }
  ],
  "credits": {
-  "remaining": 359,
-  "used": 141,
-  "as_of": "2026-11-12T00:20:16Z",
+  "remaining": 358,
+  "used": 142,
+  "as_of": "2026-11-12T01:40:15Z",
   "reset": "2026-12-01",
   "games_left": 132,
-  "needed": 260,
-  "usable": 334,
+  "needed": 259,
+  "usable": 333,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
