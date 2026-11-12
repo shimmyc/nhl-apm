@@ -1,28 +1,28 @@
 {
- "generated_utc": "2026-11-12T16:00:46Z",
- "last_run_utc": "2026-11-12T16:00:46Z",
+ "generated_utc": "2026-11-12T16:40:26Z",
+ "last_run_utc": "2026-11-12T16:40:26Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-12T16:00:46Z",
+ "last_success_utc": "2026-11-12T16:40:26Z",
  "steps": {
   "odds": {
-   "at": "2026-11-12T16:00:37Z",
-   "detail": "morning 11 logged (11 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-11-12T16:40:19Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-11-12T16:00:46Z"
+   "at": "2026-11-12T16:40:26Z"
   }
  },
- "last_snapshot_utc": "2026-11-12T16:00:36Z",
- "last_slate_utc": "2026-11-12T16:00:46Z",
+ "last_snapshot_utc": "2026-11-12T16:40:18Z",
+ "last_slate_utc": "2026-11-12T16:40:26Z",
  "games_today": [
   {
    "start_utc": "2026-11-12T17:00:00Z",
    "game": "Carolina Hurricanes @ Seattle Kraken",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-13T00:08:00Z",
@@ -86,13 +86,13 @@
   }
  ],
  "credits": {
-  "remaining": 344,
-  "used": 156,
-  "as_of": "2026-11-12T16:00:36Z",
+  "remaining": 343,
+  "used": 157,
+  "as_of": "2026-11-12T16:40:18Z",
   "reset": "2026-12-01",
   "games_left": 132,
-  "needed": 253,
-  "usable": 319,
+  "needed": 252,
+  "usable": 318,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
