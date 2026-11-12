@@ -1,22 +1,17 @@
 {
- "generated_utc": "2026-11-12T16:40:26Z",
- "last_run_utc": "2026-11-12T16:40:26Z",
+ "generated_utc": "2026-11-12T17:40:18Z",
+ "last_run_utc": "2026-11-12T17:40:18Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-12T16:40:26Z",
+ "last_success_utc": "2026-11-12T17:40:18Z",
  "steps": {
   "odds": {
-   "at": "2026-11-12T16:40:19Z",
-   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
+   "at": "2026-11-12T17:40:18Z",
+   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
-  },
-  "slate": {
-   "ok": true,
-   "detail": "published with this health update",
-   "at": "2026-11-12T16:40:26Z"
   }
  },
  "last_snapshot_utc": "2026-11-12T16:40:18Z",
- "last_slate_utc": "2026-11-12T16:40:26Z",
+ "last_slate_utc": "2026-11-12T16:40:31Z",
  "games_today": [
   {
    "start_utc": "2026-11-12T17:00:00Z",
@@ -90,7 +85,7 @@
   "used": 157,
   "as_of": "2026-11-12T16:40:18Z",
   "reset": "2026-12-01",
-  "games_left": 132,
+  "games_left": 131,
   "needed": 252,
   "usable": 318,
   "floor": 25,
