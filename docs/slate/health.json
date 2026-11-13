@@ -1,17 +1,27 @@
 {
- "generated_utc": "2026-11-13T20:00:22Z",
- "last_run_utc": "2026-11-13T20:00:22Z",
+ "generated_utc": "2026-11-13T21:00:37Z",
+ "last_run_utc": "2026-11-13T21:00:37Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-13T20:00:22Z",
+ "last_success_utc": "2026-11-13T21:00:37Z",
  "steps": {
   "odds": {
-   "at": "2026-11-13T20:00:22Z",
+   "at": "2026-11-13T21:00:21Z",
    "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
+  },
+  "recheck": {
+   "at": "2026-11-13T21:00:37Z",
+   "detail": "recheck: 5 boxscores re-fetched, 2 changed, 3 rows re-graded, 1 results flipped (2026020299 (2026-11-12): 1 starter; 1 re-graded; flipped: goalie BOS Jeremy Swayman: starter unknown -> under (saves  -> 13); 2026020304 (2026-11-12): 2 sog; 2 re-graded)",
+   "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-13T21:00:37Z"
   }
  },
  "last_snapshot_utc": "2026-11-13T16:00:25Z",
- "last_slate_utc": "2026-11-13T16:00:39Z",
+ "last_slate_utc": "2026-11-13T21:00:37Z",
  "games_today": [
   {
    "start_utc": "2026-11-14T02:10:00Z",
