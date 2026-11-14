@@ -1,23 +1,28 @@
 {
- "generated_utc": "2026-11-14T01:00:26Z",
- "last_run_utc": "2026-11-14T01:00:26Z",
+ "generated_utc": "2026-11-14T01:40:26Z",
+ "last_run_utc": "2026-11-14T01:40:26Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-14T01:00:26Z",
+ "last_success_utc": "2026-11-14T01:40:26Z",
  "steps": {
   "odds": {
-   "at": "2026-11-14T01:00:26Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-11-14T01:40:18Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-14T01:40:26Z"
   }
  },
- "last_snapshot_utc": "2026-11-13T16:00:25Z",
- "last_slate_utc": "2026-11-14T00:00:36Z",
+ "last_snapshot_utc": "2026-11-14T01:40:17Z",
+ "last_slate_utc": "2026-11-14T01:40:26Z",
  "games_today": [
   {
    "start_utc": "2026-11-14T02:10:00Z",
    "game": "New York Rangers @ Vancouver Canucks",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-14T03:10:00Z",
@@ -27,13 +32,13 @@
   }
  ],
  "credits": {
-  "remaining": 331,
-  "used": 169,
-  "as_of": "2026-11-13T16:00:25Z",
+  "remaining": 330,
+  "used": 170,
+  "as_of": "2026-11-14T01:40:17Z",
   "reset": "2026-12-01",
   "games_left": 119,
-  "needed": 236,
-  "usable": 306,
+  "needed": 235,
+  "usable": 305,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
