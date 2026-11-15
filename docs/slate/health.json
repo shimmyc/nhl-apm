@@ -1,27 +1,22 @@
 {
- "generated_utc": "2026-11-15T00:00:34Z",
- "last_run_utc": "2026-11-15T00:00:34Z",
+ "generated_utc": "2026-11-15T00:40:24Z",
+ "last_run_utc": "2026-11-15T00:40:24Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-15T00:00:34Z",
+ "last_success_utc": "2026-11-15T00:40:24Z",
  "steps": {
   "odds": {
-   "at": "2026-11-15T00:00:22Z",
+   "at": "2026-11-15T00:40:17Z",
    "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
-   "ok": true
-  },
-  "recheck": {
-   "at": "2026-11-15T00:00:34Z",
-   "detail": "recheck: 1 boxscores re-fetched, 1 changed, 1 rows re-graded, 0 results flipped; 1 games registered (2026020311 (2026-11-13): 1 sog, 1 saves; 1 re-graded)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-11-15T00:00:34Z"
+   "at": "2026-11-15T00:40:24Z"
   }
  },
- "last_snapshot_utc": "2026-11-15T00:00:21Z",
- "last_slate_utc": "2026-11-15T00:00:34Z",
+ "last_snapshot_utc": "2026-11-15T00:40:16Z",
+ "last_slate_utc": "2026-11-15T00:40:24Z",
  "games_today": [
   {
    "start_utc": "2026-11-14T18:00:00Z",
@@ -87,7 +82,7 @@
    "start_utc": "2026-11-15T01:10:00Z",
    "game": "Buffalo Sabres @ Dallas Stars",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-15T02:10:00Z",
@@ -109,13 +104,13 @@
   }
  ],
  "credits": {
-  "remaining": 305,
-  "used": 195,
-  "as_of": "2026-11-15T00:00:21Z",
+  "remaining": 304,
+  "used": 196,
+  "as_of": "2026-11-15T00:40:16Z",
   "reset": "2026-12-01",
   "games_left": 105,
-  "needed": 190,
-  "usable": 280,
+  "needed": 205,
+  "usable": 279,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
