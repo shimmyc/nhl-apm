@@ -1,47 +1,57 @@
 {
- "generated_utc": "2026-11-17T22:40:18Z",
- "last_run_utc": "2026-11-17T22:40:18Z",
+ "generated_utc": "2026-11-17T23:40:31Z",
+ "last_run_utc": "2026-11-17T23:40:31Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-17T22:40:18Z",
+ "last_success_utc": "2026-11-17T23:40:31Z",
  "steps": {
   "odds": {
-   "at": "2026-11-17T22:40:18Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-11-17T23:40:21Z",
+   "detail": "morning 0 logged (0 with DK); pregame 5 logged (5 with DK)",
    "ok": true
+  },
+  "recheck": {
+   "at": "2026-11-17T23:40:31Z",
+   "detail": "recheck: 1 boxscores re-fetched, 1 changed, 1 rows re-graded, 0 results flipped (2026020332 (2026-11-16): 1 sog, 1 saves; 1 re-graded)",
+   "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-17T23:40:31Z"
   }
  },
- "last_snapshot_utc": "2026-11-17T16:00:34Z",
- "last_slate_utc": "2026-11-17T21:40:29Z",
+ "last_snapshot_utc": "2026-11-17T23:40:20Z",
+ "last_slate_utc": "2026-11-17T23:40:31Z",
  "games_today": [
   {
    "start_utc": "2026-11-18T00:10:00Z",
    "game": "Columbus Blue Jackets @ New York Islanders",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-18T00:10:00Z",
    "game": "Edmonton Oilers @ Florida Panthers",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-18T00:10:00Z",
    "game": "Ottawa Senators @ Winnipeg Jets",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-18T00:10:00Z",
    "game": "Los Angeles Kings @ Boston Bruins",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-18T00:10:00Z",
    "game": "Buffalo Sabres @ Philadelphia Flyers",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-18T00:40:00Z",
@@ -81,13 +91,13 @@
   }
  ],
  "credits": {
-  "remaining": 276,
-  "used": 224,
-  "as_of": "2026-11-17T16:00:34Z",
+  "remaining": 271,
+  "used": 229,
+  "as_of": "2026-11-17T23:40:20Z",
   "reset": "2026-12-01",
   "games_left": 98,
-  "needed": 185,
-  "usable": 251,
+  "needed": 180,
+  "usable": 246,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
