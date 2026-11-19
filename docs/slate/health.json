@@ -1,17 +1,22 @@
 {
- "generated_utc": "2026-11-19T02:20:17Z",
- "last_run_utc": "2026-11-19T02:20:17Z",
+ "generated_utc": "2026-11-19T02:40:24Z",
+ "last_run_utc": "2026-11-19T02:40:24Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-19T02:20:17Z",
+ "last_success_utc": "2026-11-19T02:40:24Z",
  "steps": {
   "odds": {
-   "at": "2026-11-19T02:20:17Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-11-19T02:40:18Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-19T02:40:24Z"
   }
  },
- "last_snapshot_utc": "2026-11-19T00:20:19Z",
- "last_slate_utc": "2026-11-19T00:20:31Z",
+ "last_snapshot_utc": "2026-11-19T02:40:17Z",
+ "last_slate_utc": "2026-11-19T02:40:24Z",
  "games_today": [
   {
    "start_utc": "2026-11-19T00:40:00Z",
@@ -29,17 +34,17 @@
    "start_utc": "2026-11-19T03:10:00Z",
    "game": "Colorado Avalanche @ Utah Mammoth",
    "morning": true,
-   "pregame": false
+   "pregame": true
   }
  ],
  "credits": {
-  "remaining": 260,
-  "used": 240,
-  "as_of": "2026-11-19T00:20:19Z",
+  "remaining": 259,
+  "used": 241,
+  "as_of": "2026-11-19T02:40:17Z",
   "reset": "2026-12-01",
   "games_left": 84,
-  "needed": 167,
-  "usable": 235,
+  "needed": 166,
+  "usable": 234,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
