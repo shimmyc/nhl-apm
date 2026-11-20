@@ -1,17 +1,27 @@
 {
- "generated_utc": "2026-11-20T20:20:18Z",
- "last_run_utc": "2026-11-20T20:20:18Z",
+ "generated_utc": "2026-11-20T21:00:42Z",
+ "last_run_utc": "2026-11-20T21:00:42Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-20T20:20:18Z",
+ "last_success_utc": "2026-11-20T21:00:42Z",
  "steps": {
   "odds": {
-   "at": "2026-11-20T20:20:18Z",
+   "at": "2026-11-20T21:00:20Z",
    "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
+  },
+  "recheck": {
+   "at": "2026-11-20T21:00:42Z",
+   "detail": "recheck: 6 boxscores re-fetched, 3 changed, 5 rows re-graded, 1 results flipped; 11 games registered (2026020347 (2026-11-19): 1 sog, 1 saves; 2 re-graded; flipped: line Adrian Kempe Over 2.5: win -> loss (SOG 3 -> 2); 2026020351 (2026-11-19): 1 sog, 1 saves; 1 re-graded; 2026020354 (2026-11-19): 3 sog, 1 saves; 2 re-graded)",
+   "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-20T21:00:42Z"
   }
  },
  "last_snapshot_utc": "2026-11-20T02:40:17Z",
- "last_slate_utc": "2026-11-20T15:01:08Z",
+ "last_slate_utc": "2026-11-20T21:00:42Z",
  "games_today": [],
  "credits": {
   "remaining": 235,
