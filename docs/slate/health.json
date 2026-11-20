@@ -1,13 +1,13 @@
 {
- "generated_utc": "2026-11-20T16:00:38Z",
- "last_run_utc": "2026-11-20T16:00:38Z",
- "last_run_ok": false,
- "last_success_utc": "2026-11-20T15:01:04Z",
+ "generated_utc": "2026-11-20T16:20:17Z",
+ "last_run_utc": "2026-11-20T16:20:17Z",
+ "last_run_ok": true,
+ "last_success_utc": "2026-11-20T16:20:17Z",
  "steps": {
   "odds": {
-   "at": "2026-11-20T16:00:38Z",
-   "detail": "error: /sports/icehockey_nhl/events: HTTP 502: Internal Server Error",
-   "ok": false
+   "at": "2026-11-20T16:20:17Z",
+   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "ok": true
   }
  },
  "last_snapshot_utc": "2026-11-20T02:40:17Z",
