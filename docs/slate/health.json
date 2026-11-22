@@ -1,18 +1,13 @@
 {
- "generated_utc": "2026-11-21T23:40:35Z",
- "last_run_utc": "2026-11-21T23:40:35Z",
- "last_run_ok": false,
- "last_success_utc": "2026-11-21T23:00:23Z",
+ "generated_utc": "2026-11-22T00:00:30Z",
+ "last_run_utc": "2026-11-22T00:00:30Z",
+ "last_run_ok": true,
+ "last_success_utc": "2026-11-22T00:00:30Z",
  "steps": {
   "odds": {
-   "at": "2026-11-21T23:40:23Z",
-   "detail": "morning 0 logged (0 with DK); pregame 7 logged (7 with DK)",
+   "at": "2026-11-22T00:00:30Z",
+   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
    "ok": true
-  },
-  "slate": {
-   "at": "2026-11-21T23:40:35Z",
-   "detail": "new DraftKings lines: '<' not supported between instances of 'int' and 'str'",
-   "ok": false
   }
  },
  "last_snapshot_utc": "2026-11-21T23:40:22Z",
@@ -108,8 +103,8 @@
   "used": 290,
   "as_of": "2026-11-21T23:40:22Z",
   "reset": "2026-12-01",
-  "games_left": 68,
-  "needed": 119,
+  "games_left": 58,
+  "needed": 113,
   "usable": 185,
   "floor": 25,
   "runs_out": null,
