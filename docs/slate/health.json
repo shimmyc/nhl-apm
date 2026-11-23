@@ -1,23 +1,28 @@
 {
- "generated_utc": "2026-11-23T23:00:25Z",
- "last_run_utc": "2026-11-23T23:00:25Z",
+ "generated_utc": "2026-11-23T23:40:26Z",
+ "last_run_utc": "2026-11-23T23:40:26Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-23T23:00:25Z",
+ "last_success_utc": "2026-11-23T23:40:26Z",
  "steps": {
   "odds": {
-   "at": "2026-11-23T23:00:25Z",
-   "detail": "morning 0 logged (0 with DK); pregame 0 logged (0 with DK)",
+   "at": "2026-11-23T23:40:20Z",
+   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
    "ok": true
+  },
+  "slate": {
+   "ok": true,
+   "detail": "published with this health update",
+   "at": "2026-11-23T23:40:26Z"
   }
  },
- "last_snapshot_utc": "2026-11-23T16:00:30Z",
- "last_slate_utc": "2026-11-23T22:00:33Z",
+ "last_snapshot_utc": "2026-11-23T23:40:19Z",
+ "last_slate_utc": "2026-11-23T23:40:26Z",
  "games_today": [
   {
    "start_utc": "2026-11-24T00:10:00Z",
    "game": "Columbus Blue Jackets @ New Jersey Devils",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-24T00:40:00Z",
@@ -57,13 +62,13 @@
   }
  ],
  "credits": {
-  "remaining": 190,
-  "used": 310,
-  "as_of": "2026-11-23T16:00:30Z",
+  "remaining": 189,
+  "used": 311,
+  "as_of": "2026-11-23T23:40:19Z",
   "reset": "2026-12-01",
   "games_left": 53,
-  "needed": 99,
-  "usable": 165,
+  "needed": 98,
+  "usable": 164,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
