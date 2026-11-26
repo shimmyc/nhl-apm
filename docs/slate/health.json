@@ -1,22 +1,22 @@
 {
- "generated_utc": "2026-11-26T00:00:29Z",
- "last_run_utc": "2026-11-26T00:00:29Z",
+ "generated_utc": "2026-11-26T00:40:23Z",
+ "last_run_utc": "2026-11-26T00:40:23Z",
  "last_run_ok": true,
- "last_success_utc": "2026-11-26T00:00:29Z",
+ "last_success_utc": "2026-11-26T00:40:23Z",
  "steps": {
   "odds": {
-   "at": "2026-11-26T00:00:23Z",
-   "detail": "morning 0 logged (0 with DK); pregame 1 logged (1 with DK)",
+   "at": "2026-11-26T00:40:17Z",
+   "detail": "morning 0 logged (0 with DK); pregame 2 logged (2 with DK)",
    "ok": true
   },
   "slate": {
    "ok": true,
    "detail": "published with this health update",
-   "at": "2026-11-26T00:00:29Z"
+   "at": "2026-11-26T00:40:23Z"
   }
  },
- "last_snapshot_utc": "2026-11-26T00:00:22Z",
- "last_slate_utc": "2026-11-26T00:00:29Z",
+ "last_snapshot_utc": "2026-11-26T00:40:16Z",
+ "last_slate_utc": "2026-11-26T00:40:23Z",
  "games_today": [
   {
    "start_utc": "2026-11-26T00:00:00Z",
@@ -76,13 +76,13 @@
    "start_utc": "2026-11-26T01:00:00Z",
    "game": "Nashville Predators @ Dallas Stars",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-26T01:10:00Z",
    "game": "Utah Mammoth @ Minnesota Wild",
    "morning": true,
-   "pregame": false
+   "pregame": true
   },
   {
    "start_utc": "2026-11-26T02:40:00Z",
@@ -104,13 +104,13 @@
   }
  ],
  "credits": {
-  "remaining": 158,
-  "used": 342,
-  "as_of": "2026-11-26T00:00:22Z",
+  "remaining": 156,
+  "used": 344,
+  "as_of": "2026-11-26T00:40:16Z",
   "reset": "2026-12-01",
   "games_left": 31,
   "needed": 55,
-  "usable": 133,
+  "usable": 131,
   "floor": 25,
   "runs_out": null,
   "assumed_full": false
